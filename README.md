@@ -1,14 +1,156 @@
-LhaForge
-===
-Windows用圧縮解凍ソフトLhaForgeのソースコードです。 
+# LhaForge
+
+LhaForge v1.6.7を基盤として、v1系のUI・操作性・統合アーカイバDLLとの互換性を維持しながら、現代のWindows環境向けにModernizeするForkです。
+
+> **現在は設計・開発準備段階です。**
+>
+> v1.7.0として利用可能なReleaseはまだありません。
+
+## Project
+
+* Base: LhaForge v1.6.7
+* Development line: LhaForge v1.7.x
+* Development branch: `main-osamix`
+* Platform direction: Windows x64
+* License: 修正BSDライセンス
+
+LhaForge v2への移行ではなく、v1.6.7を直接の開発基準としてv1系を継続することを目的としています。
+
+## Goals
+
+LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をModernizeします。
+
+主な方針:
+
+* v1系UI・操作性の維持
+* 統合アーカイバDLLとの互換性維持
+* LhaForge本体のx64化
+* x86専用Legacy DLLを利用するLegacyHost
+* Built-in Archive BackendによるFallback
+* Legacy Format対応の維持
+* Unicode処理の改善
+* DLL Load / Archive Path Securityの強化
+* Logging基盤の追加
+* 現代Windows向けDPI・UI対応
+* Installer / Repair / Migration / Uninstallの再設計
+* v1.6.7環境からの安全なMigration
+
+## Archive Backend
+
+v1.7.xでは、外部アーカイバDLLを正式なBackendとして維持します。
+
+基本的なBackend選択方針:
+
+```text
+External x64 DLL
+        ↓
+External x86 DLL + LegacyHost
+        ↓
+Built-in Backend
+        ↓
+Error
+```
+
+Built-in Backendは外部DLL方式を廃止するためのものではなく、External Backendが利用できない場合のFallbackおよび基本可用性確保を目的とします。
+
+## Compatibility
+
+v1.7.xでは、特に次のLegacy Compatibilityを重視します。
+
+* LhaForge v1.6.7
+* 統合アーカイバDLL
+* LFCaldix
+* `cldx`
+* MenuEditor
+* File Association
+* Shell Extension
+* 既存設定
+* Legacy Archive Format
+
+互換性のために安全性を犠牲にすることはせず、危険な旧実装については挙動差を文書化した上でModernizeします。
+
+## Documentation
+
+設計資料は`docs`以下に保存しています。
+
+### Legacy
+
+* [LhaForge v1.6.7 Legacy Baseline](docs/legacy/v1.6.7/legacy-baseline.md)
+* [v1.6.7公式ソース検証](docs/legacy/v1.6.7/source-verification.md)
+
+### v1.7.0 Design
+
+* [Architecture](docs/design/v1.7.0/architecture.md)
+* [Ownership Matrix](docs/design/v1.7.0/ownership-matrix.md)
+
+### Architecture Decision Records
+
+* [ADR-0001: v1.6.7を開発基準とする](docs/adr/0001-v1.6.7を開発基準とする.md)
+* [ADR-0002: v1系外部DLL互換を維持する](docs/adr/0002-v1系外部DLL互換を維持する.md)
+* [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64本体とLegacyHostを採用する.md)
+* [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-Built-in BackendをFallbackとして持つ.md)
+
+## Development Status
+
+現在は実装開始前のArchitecture / Compatibility設計段階です。
+
+```text
+Legacy Baseline              Done
+Source Verification          Done
+Architecture Decisions       In progress
+Ownership Design             Draft
+Overall Architecture         Draft
+Directory Layout             Planned
+Backend Design               Planned
+Migration Design             Planned
+Installer Design             Planned
+Logging Design               Planned
+Encoding Design              Planned
+Security Design              Planned
+Build Modernization          Not started
+x64 Migration                Not started
+```
+
+開発環境・Build手順については、Build Modernization方針の確定後に追記します。
+
+## Development Principles
+
+このプロジェクトでは、v1.6.7のソースを一度に全面Rewriteしません。
+
+Legacy Behaviorを調査・記録した上で、段階的に、
+
+```text
+Legacy Baseline
+      ↓
+Architecture
+      ↓
+Build Modernization
+      ↓
+Regression Verification
+      ↓
+x64 / Backend Modernization
+      ↓
+Security / Compatibility
+      ↓
+v1.7.0
+```
+
+と進めます。
+
+元の設計・挙動と、新しい設計・変更理由の双方をDocumentationおよびGit履歴に残します。
+
+## Upstream
+
+Original LhaForge:
+
+* Author: Claybird
+* Repository: https://github.com/Claybird/lhaforge
+* Website: https://claybird.sakura.ne.jp/garage/lhaforge/
+
+本プロジェクトはLhaForge v1.6.7を基盤とするModernization Forkです。
+
+## License
 
 LhaForgeは修正BSDライセンスで公開されています。
 
-開発環境
----
-* Windows Vista Ultimate/32bit 日本語版
-* Microsoft Visual Studio 2005 Academic Edition
-* WTL 8.0 Final
-* STLport 5.1.3
-* Microsoft Windows SDK for Windows Vista
-
+各External Archive DLL、Built-in Backendで使用するLibrary、その他Third-party Componentには、それぞれ個別のLicenseが適用される場合があります。
