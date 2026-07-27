@@ -1,0 +1,77 @@
+# ============================================================
+# LhaForge v1.7.x
+# Git ignore rules
+# ============================================================
+
+
+# ------------------------------------------------------------
+# Windows Explorer metadata / thumbnail cache
+# ------------------------------------------------------------
+
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+
+
+# ------------------------------------------------------------
+# Visual Studio user / workspace files
+# ------------------------------------------------------------
+
+.vs/
+
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+*.VC.db
+*.VC.VC.opendb
+
+# Older Visual Studio database / IntelliSense files
+*.ncb
+*.sdf
+*.opensdf
+ipch/
+
+
+# ------------------------------------------------------------
+# MSBuild / Visual C++ intermediate files
+# ------------------------------------------------------------
+
+*.obj
+*.pch
+*.idb
+*.ilk
+*.tlog
+*.lastbuildstate
+
+# Resource editor temporary file
+*.aps
+
+
+# ------------------------------------------------------------
+# Build output directories
+#
+# Root-relative intentionally.
+# Do NOT ignore "x64/" globally because LhaForge v1.7.x
+# will use directories such as dll/x64/.
+# ------------------------------------------------------------
+
+/Debug/
+/Release/
+/Release-X64/
+/x64/
+/Win32/
+
+
+# ------------------------------------------------------------
+# Temporary / backup files
+# ------------------------------------------------------------
+
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*~
