@@ -1,12 +1,12 @@
-�\�[�X�R�[�h�ɂ���
+ソースコードについて
 by Claybird<claybird.without.wing@gmail.com>
 Web:http://claybird.sakura.ne.jp/
 
-[���p����]
-���̃\�[�X�R�[�h�͏C��BSD���C�Z���X�ɏ]���ė��p�E���ρE�Ĕz�z�����邱�Ƃ��ł��܂��B
+[利用条件]
+このソースコードは修正BSDライセンスに従って利用・改変・再配布等することができます。
 
 
-[�J����]
-Windows 10 Pro/64bit ���{��� 
+[開発環境]
+Windows 10 Pro/64bit 日本語版 
 Microsoft Visual Studio 2017 Community 
 WTL 9.1 Final
