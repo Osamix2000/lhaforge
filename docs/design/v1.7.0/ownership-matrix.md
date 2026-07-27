@@ -1,3 +1,13 @@
+# LhaForge v1.7.0 Ownership Matrix
+
+- Status: Draft
+- Target: LhaForge v1.7.x
+- Baseline: LhaForge v1.6.7
+- Purpose: v1.6.7の実態を基に、v1.7.xにおけるファイル・設定・コンポーネントの所有権、Repair、Migration、Uninstall方針を整理する。
+- Note: `TBD`の項目はLegacy調査およびInstaller設計完了後に確定する。
+
+## Ownership Matrix
+
 | 対象                | v1.6.7役割               | 旧所有主体             | v1.7.0分類                       | Repair   | Upgrade/Migration | Uninstall | 確度        |
 | ----------------- | ---------------------- | ----------------- | ------------------------------ | -------- | ----------------- | --------- | --------- |
 | LhaForge.exe      | 本体                     | Installer         | Managed                        | 上書き可     | 更新                | 削除        | Confirmed |
