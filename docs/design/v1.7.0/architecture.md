@@ -26,7 +26,7 @@ Related design documents:
 * `migration.md`
 * `installer.md`
 * `logging.md`
-* `encoding.md`（予定）
+* `encoding.md`
 
 ---
 
@@ -450,7 +450,9 @@ Windows APIは可能な限りWide Character APIを利用する。
 
 Legacy DLLがANSI API等を要求する場合のみCompatibility Boundaryで変換する。
 
-Application自身が管理するTextについては、
+新規First-party TextはUTF-8 BOMなしをDefaultとする。
+
+Read Compatibilityとして、Application自身が扱うTextでは必要に応じて、
 
 * UTF-8
 * UTF-8 BOM
@@ -458,7 +460,9 @@ Application自身が管理するTextについては、
 * UTF-16 BE
 * CP932 / Shift_JIS
 
-等、Legacy Dataを考慮する。
+等のLegacy Dataを認識する。
+
+既存Shared / Legacy FileはConsumer Compatibilityを確認せず一括UTF-8化しない。
 
 改行についても、
 

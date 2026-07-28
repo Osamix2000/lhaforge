@@ -107,6 +107,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Migration Design](docs/design/v1.7.0/migration.md)
 * [Installer Lifecycle Design](docs/design/v1.7.0/installer.md)
 * [Logging Design](docs/design/v1.7.0/logging.md)
+* [Encoding Design](docs/design/v1.7.0/encoding.md)
 * [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
@@ -117,8 +118,8 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [ADR-0001: v1.6.7を開発基準とする](docs/adr/0001-v1.6.7を開発基準とする.md)
 * [ADR-0002: v1系外部DLL互換を維持する](docs/adr/0002-v1系外部DLL互換を維持する.md)
 * [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64本体とLegacyHostを採用する.md)
-* [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-Built-in BackendをFallbackとして持つ.md)
-* [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-署名可能なRelease Architectureと最小権限設計を採用する.md)
+* [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-Built-in%20BackendをFallbackとして持つ.md)
+* [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-署名可能なRelease%20Architectureと最小権限設計を採用する.md)
 
 ## Development Status
 
@@ -139,7 +140,7 @@ Backend Design               Draft
 Migration Design             Draft
 Installer Design             Draft
 Logging Design               Draft
-Encoding Design              Planned
+Encoding Design              Draft
 Build Modernization          Not started
 x64 Migration                Not started
 ```

@@ -18,6 +18,7 @@ Related documents:
 - `signing.md`
 - `installer.md`
 - `logging.md`
+- `encoding.md`
 
 ---
 

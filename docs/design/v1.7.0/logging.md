@@ -18,7 +18,7 @@ Related documents:
 - `security.md`
 - `performance.md`
 - `signing.md`
-- `encoding.md`（予定）
+- `encoding.md`
 
 ---
 
@@ -431,9 +431,9 @@ JSON Lines等のStructured Exportは将来Optionとして検討可能だが、v1
 
 新しいLhaForge管理LogはUnicode前提とする。
 
-標準候補はUTF-8とし、Legacy CP932 Logを新規Architectureの内部標準にはしない。
+`encoding.md`に従い、File LogはUTF-8 BOMなしをDefaultとし、Legacy CP932 Logを新規Architectureの内部標準にはしない。
 
-ただし最終的なBOM、改行、Text Encoding Policyは`encoding.md`で統一する。
+改行、Legacy LogのRead Compatibility、外部DLL文字列の変換Policyも`encoding.md`と共通化する。
 
 External DLLからANSI文字列を受け取る場合は、DLL BoundaryでUnicodeへ変換してからLogging Coreへ渡す。
 
