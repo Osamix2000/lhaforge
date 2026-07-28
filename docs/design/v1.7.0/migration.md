@@ -16,7 +16,7 @@ Related documents:
 - `security.md`
 - `performance.md`
 - `signing.md`
-- `installer.md`（予定）
+- `installer.md`
 - `logging.md`（予定）
 
 ---

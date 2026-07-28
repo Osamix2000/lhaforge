@@ -15,7 +15,7 @@ Related documents:
 - `signing.md`
 - `backend.md`
 - `migration.md`
-- `installer.md`（予定）
+- `installer.md`
 
 ---
 
@@ -292,7 +292,7 @@ cldx\
 - Migration時は原則Preserve
 - Repair時は原則Preserve
 - Update時に無条件削除しない
-- Uninstall時の最終Policyは`installer.md`で決定
+- Uninstall時は既定Preserveとし、明示Cleanup Option選択時のみ削除対象にできる
 - Temporary Cacheとして扱わない
 
 ### 7.2 Compatibility
@@ -459,7 +459,7 @@ Uninstall / Repairに必要なFile Ownership、Version、Hash、Component state�
 
 Security-sensitive metadataについては、単なるFile存在だけをTrust判断に使用しない。
 
-Metadata FormatとIntegrity Policyは`installer.md`で定義する。
+Metadataの役割とIntegrity Policyは`installer.md`で定義する。具体Format / Schemaは実装設計時に確定する。
 
 ### 12.3 Recovery assets
 
@@ -808,7 +808,7 @@ Archive内EntryがDestination Rootの外へ出ることを許可しない。
 
 ## 24. Uninstall Policy by Directory
 
-Uninstallの詳細は`installer.md`で確定するが、Directory Layout上の原則は次とする。
+Uninstallの詳細は`installer.md`で定義する。Directory Layout上の原則は次とする。
 
 ### Managed binaries
 

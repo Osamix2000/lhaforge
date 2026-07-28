@@ -24,7 +24,7 @@ Related design documents:
 * `directory-layout.md`
 * `backend.md`
 * `migration.md`
-* `installer.md`（予定）
+* `installer.md`
 * `logging.md`（予定）
 * `encoding.md`（予定）
 
