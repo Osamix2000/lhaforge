@@ -25,7 +25,7 @@ Related design documents:
 * `backend.md`
 * `migration.md`
 * `installer.md`
-* `logging.md`（予定）
+* `logging.md`
 * `encoding.md`（予定）
 
 ---

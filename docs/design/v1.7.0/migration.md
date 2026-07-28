@@ -17,7 +17,7 @@ Related documents:
 - `performance.md`
 - `signing.md`
 - `installer.md`
-- `logging.md`（予定）
+- `logging.md`
 
 ---
 

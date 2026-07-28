@@ -106,6 +106,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Archive Backend Design](docs/design/v1.7.0/backend.md)
 * [Migration Design](docs/design/v1.7.0/migration.md)
 * [Installer Lifecycle Design](docs/design/v1.7.0/installer.md)
+* [Logging Design](docs/design/v1.7.0/logging.md)
 * [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
@@ -137,7 +138,7 @@ Directory Layout             Draft
 Backend Design               Draft
 Migration Design             Draft
 Installer Design             Draft
-Logging Design               Planned
+Logging Design               Draft
 Encoding Design              Planned
 Build Modernization          Not started
 x64 Migration                Not started

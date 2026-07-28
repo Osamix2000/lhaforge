@@ -15,7 +15,7 @@ Related documents:
 - `security.md`
 - `performance.md`
 - `signing.md`
-- `logging.md`（予定）
+- `logging.md`
 - `encoding.md`（予定）
 
 Related ADR:

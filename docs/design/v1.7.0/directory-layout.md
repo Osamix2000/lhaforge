@@ -635,16 +635,18 @@ File Logの既定候補:
 %LOCALAPPDATA%\LhaForge\Logs\
 ```
 
-例:
+Runtime Logの概念例:
 
 ```text
-Logs\
+%LOCALAPPDATA%\LhaForge\Logs\
 ├─ LhaForge.log
-├─ installer.log
-└─ migration.log
+├─ LegacyHost.log
+└─ Shell.log
 ```
 
-最終的なRotation、Retention、File Name、Component分割Policyは`logging.md`で定義する。
+Machine-wide Installer / Migration等のLifecycle LogはOwnershipとACLが異なるため、必要に応じて`%ProgramData%\LhaForge\Logs\Lifecycle\`等のMachine Data Domainへ分離する。最終PathはInstaller PoCで確定する。
+
+Rotation、Retention、Component分割、Sensitive Data、LogとLifecycle Journalの分離Policyは`logging.md`で定義する。
 
 Windows Event Logを有効にする場合はFile Pathとは独立したSinkとして扱う。
 
@@ -931,7 +933,7 @@ Directory設計を理由に、実装開始前の段階で既存C++ Fileを大量
 - v1.7.x Config Fileの正式保存形式とPath precedence
 - Installer metadata / recovery cacheの最終配置
 - Cache / Tempの既定PathとRetention
-- Log File構成
+- Lifecycle Logの最終Path / ACL
 - Uninstall時の`dll` / `cldx` / User Configuration削除UI
 
 これらはPoCまたは関連設計Documentで確定し、本Documentへ反映する。
