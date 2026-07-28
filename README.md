@@ -34,6 +34,11 @@ LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をMode
 * 現代Windows向けDPI・UI対応
 * Installer / Repair / Migration / Uninstallの再設計
 * v1.6.7環境からの安全なMigration
+* `.git`や`.env`等を圧縮時に除外できる共通Input Filter
+* Archive名を利用した展開先Directory作成
+* 必要な処理だけを昇格する最小権限設計
+* Signed / Unsigned双方を許容するRelease設計
+* SecurityとPerformanceを両立する共通Operation Planning
 
 ## Archive Backend
 
@@ -52,6 +57,20 @@ Error
 ```
 
 Built-in Backendは外部DLL方式を廃止するためのものではなく、External Backendが利用できない場合のFallbackおよび基本可用性確保を目的とします。
+
+## Archive Operation Safety
+
+v1.7.xではBackend種別に依存しないOperation Planningを導入し、圧縮対象と展開先をLhaForge側で共通管理します。
+
+圧縮時には`.git`や`.env`等の共有したくない項目について、
+
+* 除外しない
+* 自動的に除外する
+* 圧縮時に確認して決定する
+
+といったPolicyを選択できる方向で設計しています。除外RuleはOptionから追加・削除・有効化・無効化できる構造とします。
+
+展開時には`sample.zip`を`sample\`、`source.tar.gz`を`source\`のように、Archive名を利用したSubdirectoryへ展開するOptionを提供します。
 
 ## Compatibility
 
@@ -82,6 +101,10 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 * [Architecture](docs/design/v1.7.0/architecture.md)
 * [Ownership Matrix](docs/design/v1.7.0/ownership-matrix.md)
+* [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
+* [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
+* [Security Design](docs/design/v1.7.0/security.md)
+* [Performance Design](docs/design/v1.7.0/performance.md)
 
 ### Architecture Decision Records
 
@@ -89,6 +112,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [ADR-0002: v1系外部DLL互換を維持する](docs/adr/0002-v1系外部DLL互換を維持する.md)
 * [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64本体とLegacyHostを採用する.md)
 * [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-Built-in BackendをFallbackとして持つ.md)
+* [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-署名可能なRelease Architectureと最小権限設計を採用する.md)
 
 ## Development Status
 
@@ -100,13 +124,16 @@ Source Verification          Done
 Architecture Decisions       In progress
 Ownership Design             Draft
 Overall Architecture         Draft
+Archive Operation Design     Draft
+Signing / Privilege Design   Draft
+Security Design              Draft
+Performance Design           Draft
 Directory Layout             Planned
 Backend Design               Planned
 Migration Design             Planned
 Installer Design             Planned
 Logging Design               Planned
 Encoding Design              Planned
-Security Design              Planned
 Build Modernization          Not started
 x64 Migration                Not started
 ```
@@ -130,7 +157,7 @@ Regression Verification
       ↓
 x64 / Backend Modernization
       ↓
-Security / Compatibility
+Security / Performance / Compatibility
       ↓
 v1.7.0
 ```

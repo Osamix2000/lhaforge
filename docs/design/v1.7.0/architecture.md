@@ -11,17 +11,21 @@ Related ADR:
 * ADR-0002: v1系外部DLL互換を維持する
 * ADR-0003: x64本体とLegacyHostを採用する
 * ADR-0004: Built-in BackendをFallbackとして持つ
+* ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する
 
 Related design documents:
 
 * `ownership-matrix.md`
+* `archive-operations.md`
+* `signing.md`
+* `security.md`
+* `performance.md`
 * `directory-layout.md`（予定）
 * `backend.md`（予定）
 * `migration.md`（予定）
 * `installer.md`（予定）
 * `logging.md`（予定）
 * `encoding.md`（予定）
-* `security.md`（予定）
 
 ---
 
@@ -65,6 +69,8 @@ v1.7.xでは、主に次を実現する。
 * Archive Path Securityの強化
 * Logging基盤の新設
 * Installer / Repair / Update / Uninstallの再設計
+* 必要な操作だけを昇格するLeast Privilege設計
+* Signed / Unsigned双方を許容するRelease Architecture
 
 ### Availability
 
@@ -72,6 +78,14 @@ v1.7.xでは、主に次を実現する。
 * x86専用DLLを継続利用するLegacyHost
 * Backend障害時の明確な診断
 * Repair / Recovery経路の確保
+
+### Security and Performance
+
+* Backend種別に依存しない共通Security Policy
+* 圧縮前に最終Input Setを確定し、`.git`や`.env`等の誤共有を防止できる除外Policy
+* Archive名を安全に利用した展開先Directory生成
+* 不要なFilesystem再ScanやData Copyを避けるOperation Planning
+* 大量File、巨大Archive、異常Archiveを考慮したResource Management
 
 ---
 
@@ -102,6 +116,10 @@ Legacy CompatibilityとSecurityが競合する場合は、差異を文書化し�
 │  └──────┬───────┘    └─────────┬─────────┘  │
 │         │                      │            │
 │         └──────────┬───────────┘            │
+│                    ▼                        │
+│          ┌───────────────────┐              │
+│          │ Operation Planner │              │
+│          └─────────┬─────────┘              │
 │                    ▼                        │
 │            ┌───────────────┐                │
 │            │ ArchiveManager│                │
@@ -185,9 +203,44 @@ Password
 Encryption
 MultiVolume
 Unicode
+ExactInputSet
+InputList
 ```
 
 例えばZIPを扱えるBackendであっても`Extract`のみ対応し`Create`に対応しない場合は、圧縮時には別Backendを選択できる。
+
+### Operation Planning
+
+User-facingな圧縮・展開PolicyはBackend固有実装へ直接持たせず、ArchiveManagerへ渡す前にOperation Plannerで処理する。
+
+```text
+User Operation
+      ↓
+Operation Planner
+      ├─ Input Enumeration
+      ├─ Exclusion Policy
+      ├─ Destination Policy
+      ├─ Security Validation
+      └─ Operation Plan
+              ↓
+        ArchiveManager
+```
+
+圧縮時はDirectory Treeを可能な限り一度だけ列挙し、除外Ruleを適用した最終Input Setを確定してからBackendへ渡す。
+
+除外Modeとして少なくとも次を扱う。
+
+* 除外しない
+* Rule一致項目を自動除外
+* 圧縮時に一致項目を確認して決定
+
+`.git`、`.env`等の初期Ruleに加え、ユーザーがOption画面から除外Ruleを追加・削除・有効化・無効化できる構造とする。
+
+除外が有効な場合、Backendが独自に元Directoryを再列挙して除外対象をArchiveへ追加してはならない。最終Input Setを正確に扱えないBackendではFiltered Createを利用不可とする。
+
+展開時にはArchive名を利用したSubdirectory作成を共通Policyとして提供する。`source.tar.gz`を`source\`へ展開する等、Format Registryが認識する最長SuffixやMulti-volumeのLogical Nameを利用し、安全なDirectory名へ変換する。
+
+詳細は`archive-operations.md`で定義する。
 
 ---
 
@@ -333,6 +386,8 @@ External DLL、LegacyHost、Built-in Backendのいずれを使用しても、Lha
 * Temp Directory
 * Resource Exhaustion
 * Archive Bomb
+* 圧縮対象のSecret / Unwanted File除外Policy
+* Filtered Create時の最終Input Set保証
 
 DLLロードについても、
 
@@ -373,6 +428,16 @@ Configuration Layer
 のように、保存形式とApplication Logicの直接結合を減らす。
 
 Legacy Fileの存在場所・Encoding・Migrationルールは別途定義する。
+
+圧縮・展開の共通設定として、少なくとも次をConfiguration Layerから管理可能にする。
+
+* 圧縮時の除外Mode
+* 除外Rule List
+* Ruleの有効/無効
+* Archive名Directoryへ展開するPolicy
+* 展開先Collision Policy
+
+個別Backendの設定形式へ直接依存させず、Backend Adapterが共通設定をCapabilityに応じて実行可能な形式へ変換する。
 
 ---
 
@@ -555,6 +620,26 @@ runtime\installer\UninstallCore.exe
 ```
 
 WindowsのUninstall Registrationは、可能な限り`UninstallCore.exe`へ直接到達できる構成とする。
+
+### Privilege Separation and Optional Signing
+
+通常のLhaForge本体、Archive操作、設定等は一般ユーザー権限を基本とする。Program Files、HKLM、Machine-wide Shell登録等、本当に必要なSystem変更だけを専用Core / Helperで明示的にElevationする。
+
+```text
+Unelevated
+    LhaForge.exe / UI / Archive Operations
+           │
+           │ System-wide変更時のみElevation
+           ▼
+Elevated
+    Install / Repair / Update / Uninstall Core
+```
+
+Authenticode署名は導入可能なRelease機能として設計するが、v1.7.xの正常動作やRelease成立の必須条件にはしない。Signed / Unsignedの双方を同じBuild / Package設計で扱えるようにし、署名が利用できる場合は追加のPublisher / Integrity Validationとして活用する。
+
+署名なしの場合でもHash、Manifest、Expected Path、Version等によるIntegrity確認を可能な範囲で行う。
+
+詳細は`signing.md`およびADR-0005で定義する。
 
 詳細は`installer.md`で定義する。
 
@@ -752,7 +837,7 @@ Phase 7
 Built-in Backend
 
 Phase 8
-Security / Logging / Encoding modernization
+Security / Performance / Logging / Encoding modernization
 
 Phase 9
 Installer / Migration / Recovery
@@ -780,7 +865,9 @@ UI modernization / Final compatibility work
 * Shell Extension Architecture詳細
 * Installer Framework
 * Update Distribution方式
-* Code Signing
+* Public ReleaseでのCode Signing採用有無 / Signing Provider
+* Compression Exclusion Rule Syntax / Default Rule Set
+* Extraction Destination Collision Policy
 * Safe Mode正式仕様
 
 これらは調査・PoC・個別設計後に確定する。
@@ -795,7 +882,7 @@ v1.7.xにおける基本判断基準は、
 
 とする。
 
-Legacy Compatibility、Security、Reliability、Recoverability、Maintainabilityのバランスを取り、単なる「古いLhaForgeの再ビルド」ではなく、
+Legacy Compatibility、Security、Performance、Reliability、Recoverability、Maintainabilityのバランスを取り、単なる「古いLhaForgeの再ビルド」ではなく、
 
 > LhaForge v1系を継続可能な形へModernizeする
 
