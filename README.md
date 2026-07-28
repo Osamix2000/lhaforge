@@ -101,6 +101,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 * [Architecture](docs/design/v1.7.0/architecture.md)
 * [Ownership Matrix](docs/design/v1.7.0/ownership-matrix.md)
+* [Directory Layout](docs/design/v1.7.0/directory-layout.md)
 * [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
@@ -128,7 +129,7 @@ Archive Operation Design     Draft
 Signing / Privilege Design   Draft
 Security Design              Draft
 Performance Design           Draft
-Directory Layout             Planned
+Directory Layout             Draft
 Backend Design               Planned
 Migration Design             Planned
 Installer Design             Planned

@@ -20,7 +20,7 @@ Related design documents:
 * `signing.md`
 * `security.md`
 * `performance.md`
-* `directory-layout.md`（予定）
+* `directory-layout.md`
 * `backend.md`（予定）
 * `migration.md`（予定）
 * `installer.md`（予定）
@@ -717,9 +717,9 @@ LhaForge\
 └─ licenses\
 ```
 
-この構造はArchitecture上の概念であり、現時点で最終確定ではない。
+この構造の配置Policy、Ownership、書き込み可能Data領域、Repair / Migration / Uninstall時の扱いは`directory-layout.md`で定義する。
 
-Ownership Matrixおよび各Subsystem設計後に`directory-layout.md`で確定する。
+個々のLegacy Componentについて技術制約が判明した場合は、PoC結果を基に`directory-layout.md`を更新する。
 
 ---
 
