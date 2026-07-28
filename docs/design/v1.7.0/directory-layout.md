@@ -13,8 +13,8 @@ Related documents:
 - `security.md`
 - `performance.md`
 - `signing.md`
-- `backend.md`（予定）
-- `migration.md`（予定）
+- `backend.md`
+- `migration.md`
 - `installer.md`（予定）
 
 ---

@@ -23,7 +23,7 @@ Related design documents:
 * `performance.md`
 * `directory-layout.md`
 * `backend.md`
-* `migration.md`（予定）
+* `migration.md`
 * `installer.md`（予定）
 * `logging.md`（予定）
 * `encoding.md`（予定）
