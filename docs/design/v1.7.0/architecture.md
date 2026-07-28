@@ -3,7 +3,8 @@
 * Status: Draft
 * Target: LhaForge v1.7.x
 * Baseline: LhaForge v1.6.7 (`ver_1_6_7`)
-* Development branch: `main-osamix`
+* Integration branch: `main-osamix`
+* Development branch: `develop-v1.7.0`
 
 Related ADR:
 
@@ -21,7 +22,7 @@ Related design documents:
 * `security.md`
 * `performance.md`
 * `directory-layout.md`
-* `backend.md`（予定）
+* `backend.md`
 * `migration.md`（予定）
 * `installer.md`（予定）
 * `logging.md`（予定）

@@ -10,7 +10,8 @@ LhaForge v1.6.7を基盤として、v1系のUI・操作性・統合アーカイ�
 
 * Base: LhaForge v1.6.7
 * Development line: LhaForge v1.7.x
-* Development branch: `main-osamix`
+* Integration branch: `main-osamix`
+* Active development branch: `develop-v1.7.0`
 * Platform direction: Windows x64
 * License: 修正BSDライセンス
 
@@ -102,6 +103,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Architecture](docs/design/v1.7.0/architecture.md)
 * [Ownership Matrix](docs/design/v1.7.0/ownership-matrix.md)
 * [Directory Layout](docs/design/v1.7.0/directory-layout.md)
+* [Archive Backend Design](docs/design/v1.7.0/backend.md)
 * [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
@@ -130,7 +132,7 @@ Signing / Privilege Design   Draft
 Security Design              Draft
 Performance Design           Draft
 Directory Layout             Draft
-Backend Design               Planned
+Backend Design               Draft
 Migration Design             Planned
 Installer Design             Planned
 Logging Design               Planned
