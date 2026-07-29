@@ -224,16 +224,33 @@ Unknown ownershipやUser supplied FileをInstaller都合で削除しない原則
 
 ### Gate A: Build Modernization開始前
 
+Gate AはEnvironment SetupとProject Retargetを分離する。
+
+#### Gate A1: Development Environment Setup
+
+Status: **Resolved**
+
+確定済み:
+
+- Visual Studio Community 2026 Stable
+- v143 / MSVC 14.44 family
+- Windows SDK 26100 family
+- ATL v14.44
+- WTL Baseline Version 9.0.4140
+- Repository Root `.vsconfig`
+- `tools/verify-vs-environment.ps1`
+
+この時点から開発PCへ`.vsconfig`に従ってVisual Studioを導入してよい。
+
+#### Gate A2: First Modern x86 Retarget
+
 確定が必要:
 
-- v1.7.x Minimum Windows Version
-- 使用するVisual Studio / MSVC世代
-- Windows SDK方針
-- WTL Version / Dependency配置方式
-- Source Encodingを壊さないBuild方針
+- WTL 9.0.4140のRepository-managed Restore方式 / Dependency配置
+- Source Encodingを壊さないProject Retarget手順
 - x86 Baseline Configuration名とOutput Layout
 
-このGateを通るまでは、開発PCへ特定のVisual Studio Workloadを入れる必要はない。
+Minimum supported Windows VersionはPoC 1のCompiler再現に必須ではないため、このGateから分離する。現時点では新APIを無条件導入せず、Runtime OS方針はAPI Audit後に確定する。
 
 ### Gate B: x64 Migration開始前
 

@@ -16,6 +16,7 @@ Related documents:
 - `encoding.md`
 - `security.md`
 - `performance.md`
+- `development-environment.md`
 
 ---
 
@@ -94,24 +95,30 @@ C:\Dev\vc2013\WTL90_4140_Final\Include
 
 Visual Studio 2026はVisual C++についてVisual Studio 2010以降のProjectを扱えるため、VS2013世代のLhaForge ProjectをModernizationする入口として利用可能である。
 
-初期候補:
+PoC 1の標準環境を次のように確定する。
 
 ```text
 IDE
-  Visual Studio Community 2026 stable
+  Visual Studio Community 2026 Stable
 
 Workload
   Desktop development with C++
 
-Compiler
-  MSVC Build Tools for x64/x86 (Latest stable)
+Baseline compiler
+  v143 / MSVC 14.44 family
+  x86 / x64 Build Tools
 
-Additional component
-  C++ ATL for x64/x86
+ATL
+  ATL for v143 / MSVC 14.44
 
 Windows SDK
-  Windows 11 SDK 10.0.26100 familyを初期候補
+  Windows 11 SDK 10.0.26100 family
+
+Target Platform Version candidate
+  10.0.26100.0
 ```
+
+Visual Studio 2026で提供されるLatest MSVCをPoC 1のBaselineには使用せず、v143 / 14.44を明示的に利用する。IDE更新とCompiler世代更新を分離し、Modern x86 Regression成立後にLatest MSVCを別Changeとして評価する。
 
 Community Editionは個人開発およびOpen Source用途で利用可能なため、本Forkの標準開発IDE候補とする。
 
@@ -138,23 +145,19 @@ Historical Toolchainをそのまま再現することはEvidenceとして有用�
 
 Developer個人のVisual Studio Installer選択に依存させない。
 
-最終的にRepository Rootへ、
+Repository Rootの`.vsconfig`を標準Installation ConfigurationとしてVersion Controlする。
+
+PoC 1の`.vsconfig`では、次を明示する。
 
 ```text
-.vsconfig
+Microsoft.VisualStudio.Workload.NativeDesktop
+Microsoft.VisualStudio.ComponentGroup.VC.Tools.143.x86.x64
+Microsoft.VisualStudio.Component.VC.14.44.17.14.ATL
+Microsoft.VisualStudio.Component.Windows11SDK.26100
+Microsoft.VisualStudio.Component.NuGet
 ```
 
-を追加し、必要ComponentをVersion Controlする。
-
-初回PoCでは最低限、
-
-- C++ Desktop Toolchain
-- x86 / x64 MSVC
-- ATL
-- Windows SDK
-- MSBuild / debugger
-
-だけを要求する。
+MSBuild / debugger等はC++ Desktop Workloadから取得する。
 
 MFC、UWP、WinUI、C++/CLI、Linux Toolchain等は、LhaForge Buildに必要であることが確認されるまで必須にしない。
 
@@ -430,10 +433,10 @@ PoC 1のExit Criteria:
 ## 16. Proposed Change Sequence
 
 ```text
-BM-001
-Add build documentation / .vsconfig
+BM-001  COMPLETE
+Add build documentation / .vsconfig / environment verification
 
-BM-002
+BM-002  NEXT
 Remove machine-specific WTL include path
 and restore WTL 9.0.4140 reproducibly
 
@@ -465,19 +468,19 @@ Start actual x64 configuration
 
 ## 17. User Preparation
 
-このDocument作成時点では、User側でVisual Studioをまだ導入しなくてよい。
+Repository Rootに`.vsconfig`と`development-environment.md`を追加したため、PoC 1の開発環境準備Gateは成立した。
 
-次に`.vsconfig`と具体的なInstallation ChecklistをRepositoryへ追加した時点を、開発環境準備開始のGateとする。
+User側ではこの時点からVisual Studio Community 2026 Stableを導入し、`.vsconfig`をImportしてよい。
 
-旧Visual Studio、v120、v120_xp、WTL 9.0を手作業で先に導入しない。
+旧Visual Studio、v120、v120_xp、WTL 9.0を手作業で追加導入しない。
+
+導入後は`tools/verify-vs-environment.ps1`でPrerequisiteを確認する。
 
 ---
 
 ## 18. Open Items
 
-- Visual Studio 2026の導入Component最終一覧
-- `.vsconfig`の最終Component ID
-- Windows SDK 26100 familyの具体的Patch Version / Installer availability
+- Windows SDK 26100 familyのServicing Build差異がBuildへ与える影響
 - Minimum supported Windows Version
 - WTL 9.0.4140 NuGet Restoreの現行MSBuild上での動作
 - WTL 10.1.0へのUpgrade時期

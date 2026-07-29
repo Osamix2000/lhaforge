@@ -116,6 +116,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [PoC Plan](docs/design/v1.7.0/poc-plan.md)
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
+* [Development Environment](docs/design/v1.7.0/development-environment.md)
 
 ### Architecture Decision Records
 
@@ -149,10 +150,15 @@ Design Review                Draft
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          Draft
+Development Environment       Ready for PoC 1 setup
 x64 Migration                Not started
 ```
 
-開発環境・Build手順については、Build ModernizationのPoC用`.vsconfig`と導入手順を確定後に追記します。
+PoC 1用の開発環境定義としてRepository Rootに`.vsconfig`を用意しています。
+
+標準環境はVisual Studio Community 2026 Stable + v143 / MSVC 14.44 + Windows SDK 26100 familyです。詳細は[Development Environment](docs/design/v1.7.0/development-environment.md)を参照してください。
+
+Visual Studio導入後は`tools/verify-vs-environment.ps1`で必要Componentを確認できます。
 
 ## Development Principles
 

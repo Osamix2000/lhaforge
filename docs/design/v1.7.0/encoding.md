@@ -619,7 +619,21 @@ File NameにSpaceが存在する場合、Markdown Relative LinkではSpaceをURL
 
 将来的なCIで、Tracked PathのUTF-8妥当性とMarkdown Relative Linkの存在確認を自動化することを検討する。
 
-### 21.3 Existing source.txt
+### 21.3 Windows PowerShell 5.1 Script Exception
+
+RepositoryのText Fileは原則UTF-8 BOMなしとするが、`powershell.exe`で実行するWindows PowerShell 5.1向け`.ps1`は例外として扱う。
+
+Windows PowerShell 5.1はUTF-8 BOMなしのScriptをSystem ANSI Code Pageとして解釈するため、日本語等のNon-ASCII文字を含むUTF-8 BOMなしScriptはParser Errorや文字化けを起こし得る。
+
+互換性を優先し、Windows PowerShell 5.1でも実行するRepository管理Scriptは次のいずれかとする。
+
+1. Script本文をASCIIのみで記述する。
+2. Non-ASCII文字が必要な場合はUTF-8 BOM付きで保存し、そのEncoding要件を明示する。
+3. PowerShell 7以上専用Scriptにする場合は`pwsh`専用であることを明示し、Windows PowerShell 5.1から実行させない。
+
+PoC 1の`tools/verify-vs-environment.ps1`はWindows PowerShell 5.1互換を必要とするため、ASCII-onlyで管理する。
+
+### 21.4 Existing source.txt
 
 `source.txt`はv1.7.x開発準備時にUTF-8 BOMなしへ変換済みである。
 
@@ -814,3 +828,10 @@ Security ValidationをDecode後にも行う
 ```
 
 ことをEncoding Modernizationの基本原則とする。
+
+### Windows PowerShell 5.1 and native UTF-8 JSON
+
+`powershell.exe` (Windows PowerShell 5.1) からnative processのUTF-8 JSONを直接Pipelineで`ConvertFrom-Json`へ渡す実装は避ける。localized stringを含む出力がactive code pageで誤Decodeされ、JSON自体が破損する場合がある。
+
+Environment verifierでは`vswhere -format json -utf8 | ConvertFrom-Json`を使用せず、必要な`-property`を個別に取得する。JSONが必要な場合はbyte-levelでEncodingを明示してDecodeするか、PowerShell 7専用処理として分離する。
+

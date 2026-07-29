@@ -16,6 +16,7 @@ Related documents:
 - `migration.md`
 - `installer.md`
 - `build-modernization.md`
+- `development-environment.md`
 
 ---
 
@@ -50,11 +51,17 @@ Output:
 - `design-review.md`
 - `risk-register.md`
 - `build-modernization.md`
+- `development-environment.md`
 - 本Document
 
 Exit:
 
 - Build Modernizationに必要な環境を具体的に指定できる。
+- Repository Rootに`.vsconfig`が存在する。
+- `development-environment.md`に導入手順が存在する。
+- `tools/verify-vs-environment.ps1`でPrerequisiteを確認できる。
+
+Status: **Complete**
 
 ---
 
@@ -89,9 +96,13 @@ Output:
 
 User側準備:
 
-このPoC開始直前に、こちらで確定した`.vsconfig`またはComponent一覧に従ってVisual Studioを導入する。
+Repository Rootの`.vsconfig`と`development-environment.md`に従ってVisual Studio Community 2026 Stableを導入する。
 
-**それ以前に旧Visual Studioや旧SDKを自己判断で追加導入しない。**
+Baselineはv143 / MSVC 14.44 + Windows SDK 26100 familyとする。
+
+**旧Visual Studio、v120 / v120_xp、旧SDK、WTLを自己判断で追加導入しない。**
+
+導入後は`tools/verify-vs-environment.ps1`を実行し、Environment Gateを確認する。
 
 ---
 
