@@ -112,6 +112,10 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
 * [Performance Design](docs/design/v1.7.0/performance.md)
+* [Design Review](docs/design/v1.7.0/design-review.md)
+* [PoC Plan](docs/design/v1.7.0/poc-plan.md)
+* [Risk Register](docs/design/v1.7.0/risk-register.md)
+* [Build Modernization](docs/design/v1.7.0/build-modernization.md)
 
 ### Architecture Decision Records
 
@@ -141,11 +145,14 @@ Migration Design             Draft
 Installer Design             Draft
 Logging Design               Draft
 Encoding Design              Draft
-Build Modernization          Not started
+Design Review                Draft
+PoC Plan                     Draft
+Risk Register                Draft
+Build Modernization          Draft
 x64 Migration                Not started
 ```
 
-開発環境・Build手順については、Build Modernization方針の確定後に追記します。
+開発環境・Build手順については、Build ModernizationのPoC用`.vsconfig`と導入手順を確定後に追記します。
 
 ## Development Principles
 

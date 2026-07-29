@@ -4,7 +4,7 @@
 - Target: LhaForge v1.7.x
 - Baseline: LhaForge v1.6.7
 - Purpose: v1.6.7の実態を基に、v1.7.xにおけるファイル・設定・コンポーネントの所有権、Repair、Migration、Uninstall方針を整理する。
-- Note: `TBD`の項目はLegacy調査およびInstaller設計完了後に確定する。
+- Note: Lifecycle設計で確定したPolicyは本表へ反映し、技術制約が残る項目のみ`TBD`として維持する。
 
 ## Ownership Matrix
 
@@ -18,9 +18,9 @@
 | ShellExtDLL.dll   | x86 Shell Extension    | Installer         | Managed                        | 上書き可     | 更新                | 削除        | Confirmed |
 | ShellExtDLL64.dll | x64 Shell Extension    | Installer         | Managed                        | 上書き可     | 更新                | 削除        | Confirmed |
 | LFCaldix.exe      | DLL取得/管理               | Installer         | Managed / Legacy compatibility | 上書き可     | 更新/移行             | 削除        | Confirmed |
-| LhaForge.ini      | ユーザー設定                 | LhaForge/User     | User configuration             | 上書き禁止    | 保持/移行             | TBD       | High      |
-| LFCaldix.ini      | DLL管理設定                | LhaForge/LFCaldix | Shared compatibility config    | 無条件上書き禁止 | 移行                | TBD       | Confirmed |
-| cldx\             | DLL説明書等                | LFCaldix          | Legacy managed assets          | 保持       | 保持/移行             | TBD       | Confirmed |
-| 外部Archive DLL     | Backend                | LFCaldix/User     | User-serviceable Backend       | 原則上書き禁止  | 保持/評価             | TBD       | High      |
+| LhaForge.ini      | ユーザー設定                 | LhaForge/User     | User configuration             | 上書き禁止    | 保持/移行             | 既定保持 / 明示削除 | High      |
+| LFCaldix.ini      | DLL管理設定                | LhaForge/LFCaldix | Shared compatibility config    | 無条件上書き禁止 | 移行                | 既定保持 / 所有確認後に明示削除 | Confirmed |
+| cldx\             | DLL説明書等                | LFCaldix          | Legacy managed assets          | 保持       | 保持/移行             | 既定保持 / 明示削除 | Confirmed |
+| 外部Archive DLL     | Backend                | LFCaldix/User     | User-serviceable Backend       | 原則上書き禁止  | 保持/評価             | 既定保持 / 明示削除 | High      |
 | b2e32.dll         | Bundled B2E support    | Installer         | Managed                        | 上書き可     | 更新/互換確認           | 削除        | Confirmed |
 | epuninst.exe      | 旧Installer Uninstaller | Installer         | Legacy migration input         | 修復対象外    | 新方式へ移行            | 旧環境時のみ    | High      |

@@ -27,6 +27,10 @@ Related design documents:
 * `installer.md`
 * `logging.md`
 * `encoding.md`
+* `design-review.md`
+* `poc-plan.md`
+* `risk-register.md`
+* `build-modernization.md`
 
 ---
 
@@ -860,8 +864,8 @@ UI modernization / Final compatibility work
 現時点で未確定の主な項目:
 
 * Windows最低対応Version
-* Modern MSVC / Windows SDK Version
-* WTL Version
+* Modern MSVC / Windows SDK Version（方向性は`build-modernization.md`で定義、PoCで最終固定）
+* WTL Version（9.0.4140 Baseline → 10.1.0評価を候補）
 * Built-in Backend Library構成
 * Individual External DLL Support Matrix
 * LegacyHost IPC Protocol詳細
