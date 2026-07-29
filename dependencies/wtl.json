@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "dependency": "WTL",
+  "defaultVersion": "9.1.5321",
+  "packages": [
+    {
+      "version": "9.1.5321",
+      "archive": "WTL91_5321_Final.zip",
+      "sha256": "c03f80c66f28e86b3cc7c98d14afab6bec8eb9366476f6bdda8469c35f52b18a",
+      "uris": [
+        "https://sourceforge.net/projects/wtl/files/WTL%209.1/WTL%209.1.5321%20Final/WTL91_5321_Final.zip/download",
+        "https://downloads.sourceforge.net/project/wtl/WTL%209.1/WTL%209.1.5321%20Final/WTL91_5321_Final.zip"
+      ]
+    },
+    {
+      "version": "9.0.4140",
+      "archive": "WTL90_4140_Final.zip",
+      "sha256": "3a4aa60e4c83d88a17b69852db22fbaf8caa4dccb083528d419c82801b686813",
+      "uris": [
+        "https://sourceforge.net/projects/wtl/files/WTL%209.0/WTL%209.0.4140%20Final/WTL90_4140_Final.zip/download",
+        "https://downloads.sourceforge.net/project/wtl/WTL%209.0/WTL%209.0.4140%20Final/WTL90_4140_Final.zip"
+      ]
+    }
+  ]
+}

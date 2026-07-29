@@ -17,6 +17,7 @@ Related documents:
 - `security.md`
 - `performance.md`
 - `development-environment.md`
+- `dependencies.md`
 
 ---
 
@@ -93,7 +94,7 @@ C:\Dev\vc2013\WTL90_4140_Final\Include
 
 2026-07-29時点の開発Toolchain候補はVisual Studio 2026 stableとする。
 
-Visual Studio 2026はVisual C++についてVisual Studio 2010以降のProjectを扱えるため、VS2013世代のLhaForge ProjectをModernizationする入口として利用可能である。
+Visual Studio 2026をModernizationの入口とする。LhaForgeはSolution metadataがVS2013、Project metadataがVS2017世代、Toolsetがv120 / v120_xpという混在状態のため、IDE世代とCompiler Toolsetを分離して扱う。
 
 PoC 1の標準環境を次のように確定する。
 
@@ -165,27 +166,22 @@ MFC、UWP、WinUI、C++/CLI、Linux Toolchain等は、LhaForge Buildに必要で
 
 ## 6. WTL Migration Strategy
 
-現行ProjectはWTL 9.0.4140への固定Local Pathを使用している。
+現行Projectは`WTL90_4140_Final`という固定Local Pathを使用している一方、公式`source.txt`はDevelopment Environmentとして`WTL 9.1 Final`を明記する。
 
-WTLのCurrent Stable候補は10.1.0であるが、Toolchain MigrationとWTL Major Updateを同時に実施しない。
+したがってPath名だけから9.0.4140を最終Baselineと断定しない。
 
-### Stage A: Baseline Dependency
+### Stage A: Reproducible Historical Profiles
 
-最初のModern x86 Buildでは、可能な限りHistorical Versionと同じ、
-
-```text
-WTL 9.0.4140
-```
-
-を再現可能なDependencyとして利用する。
-
-候補:
+BM-002ではOfficial SourceForge ArchiveをSHA-256で固定し、次の2 ProfileをRepository-managed Restoreする。
 
 ```text
-NuGet package: wtl 9.0.4140
+Primary:       WTL 9.1.5321 Final
+Compatibility: WTL 9.0.4140 Final
 ```
 
-目的はMachine固有Pathを除去しつつ、WTL Version差によるBehavior Changeを最初のBuildから混入させないことである。
+Primaryは`source.txt`を優先する。9.0.4140はProject Fileに残るHistorical Pathの意味を検証するためのA/B Profileとする。
+
+目的はMachine固有Pathを除去しつつ、WTL Version Evidenceの不一致をBuild結果で解消可能にすることである。
 
 ### Stage B: WTL Upgrade
 
@@ -436,9 +432,9 @@ PoC 1のExit Criteria:
 BM-001  COMPLETE
 Add build documentation / .vsconfig / environment verification
 
-BM-002  NEXT
-Remove machine-specific WTL include path
-and restore WTL 9.0.4140 reproducibly
+BM-002  IMPLEMENTED
+Add hash-pinned WTL 9.1.5321 / 9.0.4140 restore
+and define repository-managed dependency paths
 
 BM-003
 Retarget x86 project to modern MSVC / SDK
@@ -472,9 +468,9 @@ Repository Rootに`.vsconfig`と`development-environment.md`を追加したた�
 
 User側ではこの時点からVisual Studio Community 2026 Stableを導入し、`.vsconfig`をImportしてよい。
 
-旧Visual Studio、v120、v120_xp、WTL 9.0を手作業で追加導入しない。
+旧Visual Studio、v120、v120_xp、WTLを任意Local Pathへ手作業で追加導入しない。
 
-導入後は`tools/verify-vs-environment.ps1`でPrerequisiteを確認する。
+Visual Studio Environment Gateは通過済みである。BM-002適用後は`tools/restore-wtl.ps1`でPrimary WTLをRestoreし、`tools/verify-vs-environment.ps1`でDependencyを含むPrerequisiteを再確認する。
 
 ---
 
@@ -482,7 +478,7 @@ User側ではこの時点からVisual Studio Community 2026 Stableを導入し�
 
 - Windows SDK 26100 familyのServicing Build差異がBuildへ与える影響
 - Minimum supported Windows Version
-- WTL 9.0.4140 NuGet Restoreの現行MSBuild上での動作
+- WTL 9.1.5321 Primaryと9.0.4140 Compatibility ProfileのCompile / Behavior差分
 - WTL 10.1.0へのUpgrade時期
 - `/MT`継続か`/MD`移行か
 - Warning Levelの最終値

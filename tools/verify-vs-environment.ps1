@@ -113,16 +113,20 @@ else {
         $selectedMsvc = $msvcVersions[-1]
         $clX86 = Join-Path $selectedMsvc.FullName 'bin\Hostx64\x86\cl.exe'
         $clX64 = Join-Path $selectedMsvc.FullName 'bin\Hostx64\x64\cl.exe'
-        $atlHeader = Join-Path $selectedMsvc.FullName 'atlmfc\include\atlbase.h'
+        $atlBaseHeader = Join-Path $selectedMsvc.FullName 'atlmfc\include\atlbase.h'
+        $atlWinHeader = Join-Path $selectedMsvc.FullName 'atlmfc\include\atlwin.h'
 
         $clX86Ok = Test-Path -LiteralPath $clX86
         $clX64Ok = Test-Path -LiteralPath $clX64
-        $atlOk = Test-Path -LiteralPath $atlHeader
+        $atlBaseOk = Test-Path -LiteralPath $atlBaseHeader
+        $atlWinOk = Test-Path -LiteralPath $atlWinHeader
+        $atlOk = $atlBaseOk -and $atlWinOk
 
         Write-CheckResult -Name 'MSVC v143 / 14.44 family' -Ok ($clX86Ok -and $clX64Ok) -Detail $selectedMsvc.Name
         Write-CheckResult -Name 'MSVC x86 compiler' -Ok $clX86Ok -Detail $clX86
         Write-CheckResult -Name 'MSVC x64 compiler' -Ok $clX64Ok -Detail $clX64
-        Write-CheckResult -Name 'ATL 14.44' -Ok $atlOk -Detail $atlHeader
+        Write-CheckResult -Name 'ATL 14.44 atlbase.h' -Ok $atlBaseOk -Detail $atlBaseHeader
+        Write-CheckResult -Name 'ATL 14.44 atlwin.h' -Ok $atlWinOk -Detail $atlWinHeader
 
         if (-not $clX86Ok -or -not $clX64Ok -or -not $atlOk) {
             $failed = $true
@@ -148,8 +152,43 @@ else {
     Write-CheckResult -Name 'Windows SDK 26100 family' -Ok $true -Detail (($sdkVersions.Name) -join ', ')
 }
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$wtlManifest = Join-Path $repoRoot 'dependencies\wtl.json'
+if (-not (Test-Path -LiteralPath $wtlManifest -PathType Leaf)) {
+    Write-CheckResult -Name 'WTL dependency manifest' -Ok $false -Detail $wtlManifest
+    $failed = $true
+}
+else {
+    $wtlConfig = Get-Content -LiteralPath $wtlManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    $wtlVersion = [string]$wtlConfig.defaultVersion
+    $wtlPackage = @($wtlConfig.packages | Where-Object { [string]$_.version -eq $wtlVersion }) | Select-Object -First 1
+    $wtlInclude = Join-Path $repoRoot ('.deps\wtl\{0}\Include' -f $wtlVersion)
+    $wtlHeader = Join-Path $wtlInclude 'atlapp.h'
+    $wtlMetadataPath = Join-Path $repoRoot ('.deps\wtl\{0}\.restore-metadata.json' -f $wtlVersion)
+    $wtlOk = (Test-Path -LiteralPath $wtlHeader -PathType Leaf) -and ($null -ne $wtlPackage)
+
+    if ($wtlOk -and (Test-Path -LiteralPath $wtlMetadataPath -PathType Leaf)) {
+        try {
+            $wtlMetadata = Get-Content -LiteralPath $wtlMetadataPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $wtlOk = (([string]$wtlMetadata.version -eq $wtlVersion) -and
+                ([string]$wtlMetadata.sha256 -eq ([string]$wtlPackage.sha256).ToLowerInvariant()))
+        }
+        catch {
+            $wtlOk = $false
+        }
+    }
+    else {
+        $wtlOk = $false
+    }
+
+    Write-CheckResult -Name ('WTL {0}' -f $wtlVersion) -Ok $wtlOk -Detail $wtlInclude
+    if (-not $wtlOk) {
+        Write-Host '      Run: powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\restore-wtl.ps1'
+        $failed = $true
+    }
+}
+
 Write-Host ''
-Write-Host 'WTL 9.0.4140 is not checked yet. Repository-managed restore will be added in BM-002.'
 Write-Host 'This script does not retarget projects or start a build.'
 
 if ($failed) {

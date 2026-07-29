@@ -57,7 +57,10 @@ Review cycle 1時点では、v1.7.0設計を破棄・再設計する必要があ
 
 ### 2.1 Visual Studio / Toolset
 
-`LhaForge.sln`はVisual Studio 2013世代である。
+`LhaForge.sln`のSolution metadataはVisual Studio 2013世代である。
+一方、`LhaForge.vcxproj`は`ToolsVersion=15.0` / `_ProjectFileVersion=15.x`で、公式`source.txt`はVisual Studio 2017 CommunityをDevelopment Environmentとして明記する。
+
+したがって「最終開発環境がVS2013だった」とは断定せず、VS2017上でv120 / v120_xp Toolsetを使用していた可能性をBaseline Evidenceとして扱う。
 
 ```text
 VisualStudioVersion = 12.0.40629.0
@@ -83,7 +86,9 @@ C:\Dev\vc2013\WTL90_4140_Final\Include
 
 したがって現在のProjectはClean Machineでそのまま再現できるBuild定義ではない。
 
-Build Modernizationでは、WTLをRepository / Dependency Management / documented external dependencyのいずれかとして再現可能にする必要がある。
+一方、公式`source.txt`ではDevelopment Environmentを`Visual Studio 2017 Community / WTL 9.1 Final`としている。Project File自体も`ToolsVersion=15.0`であるため、固定Directory Nameだけを根拠に9.0.4140を最終利用Versionと断定できない。
+
+BM-002ではWTL 9.1.5321をPrimary、9.0.4140をCompatibility Profileとして両方Restore可能にし、このEvidence conflictをPoC Buildで検証する。
 
 ### 2.3 `Release-X64`はx64 Buildではない
 
@@ -236,7 +241,7 @@ Status: **Resolved**
 - v143 / MSVC 14.44 family
 - Windows SDK 26100 family
 - ATL v14.44
-- WTL Baseline Version 9.0.4140
+- WTL Primary 9.1.5321 / Compatibility 9.0.4140
 - Repository Root `.vsconfig`
 - `tools/verify-vs-environment.ps1`
 
@@ -246,7 +251,7 @@ Status: **Resolved**
 
 確定が必要:
 
-- WTL 9.0.4140のRepository-managed Restore方式 / Dependency配置
+- WTL 9.1.5321 / 9.0.4140のRepository-managed RestoreとA/B Build結果
 - Source Encodingを壊さないProject Retarget手順
 - x86 Baseline Configuration名とOutput Layout
 
@@ -330,7 +335,7 @@ Built-in Libraryの最終選定は、この時点で全Format分を確定する�
 
 ### High: Reproducible Buildがまだ存在しない
 
-現在のProjectはVS2013 / old Toolset / hard-coded WTL Pathへ依存している。
+現在のProjectはVS2013 Solution metadata、VS2017世代Project metadata、v120 / v120_xp Toolset、hard-coded WTL Pathが混在しており、そのままではClean Machine Buildを再現できない。
 
 最優先はModern x64化ではなく、
 

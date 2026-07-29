@@ -117,6 +117,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
+* [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
 ### Architecture Decision Records
 
@@ -150,7 +151,8 @@ Design Review                Draft
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          Draft
-Development Environment       Ready for PoC 1 setup
+Development Environment      Verified
+Dependency Management        BM-002 implemented
 x64 Migration                Not started
 ```
 
@@ -158,7 +160,9 @@ PoC 1用の開発環境定義としてRepository Rootに`.vsconfig`を用意し�
 
 標準環境はVisual Studio Community 2026 Stable + v143 / MSVC 14.44 + Windows SDK 26100 familyです。詳細は[Development Environment](docs/design/v1.7.0/development-environment.md)を参照してください。
 
-Visual Studio導入後は`tools/verify-vs-environment.ps1`で必要Componentを確認できます。
+Visual Studio環境はPoC 1用構成で検証済みです。
+
+WTLは`tools/restore-wtl.ps1`でRepository配下へRestoreし、`tools/verify-vs-environment.ps1`でVisual Studio / MSVC / SDKと合わせて確認します。Primary Profileは公式`source.txt`に合わせたWTL 9.1.5321で、Project Fileの旧固定Pathに対応するWTL 9.0.4140も比較用Profileとして保持します。
 
 ## Development Principles
 

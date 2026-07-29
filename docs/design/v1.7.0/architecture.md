@@ -865,7 +865,7 @@ UI modernization / Final compatibility work
 
 * Windows最低対応Version
 * Modern MSVC / Windows SDK Version（方向性は`build-modernization.md`で定義、PoCで最終固定）
-* WTL Version（9.0.4140 Baseline → 10.1.0評価を候補）
+* WTL Version（9.1.5321 Primary / 9.0.4140 Compatibility → 10.xはRegression後に評価）
 * Built-in Backend Library構成
 * Individual External DLL Support Matrix
 * LegacyHost IPC Protocol詳細

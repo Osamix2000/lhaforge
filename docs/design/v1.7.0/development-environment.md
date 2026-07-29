@@ -1,6 +1,6 @@
 # LhaForge v1.7.0 Development Environment
 
-- Status: Ready for PoC 1 setup
+- Status: Visual Studio environment verified / BM-002 WTL restore ready
 - Target: LhaForge v1.7.x
 - Baseline: LhaForge v1.6.7 (`ver_1_6_7`)
 - Development branch: `develop-v1.7.0`
@@ -15,6 +15,7 @@ Related documents:
 - `risk-register.md`
 - `encoding.md`
 - `security.md`
+- `dependencies.md`
 
 ---
 
@@ -144,9 +145,9 @@ Minimum Runtime OSはこのSDK Versionから自動決定しない。
 
 ### 3.5 NuGet
 
-WTL 9.0.4140を再現可能なDependencyとして取得する候補としてNuGetを利用できるよう、NuGet Componentを明示する。
+NuGet ComponentはVisual Studioの標準的なPackage Managementと将来Dependencyの評価に利用できるため導入する。
 
-ただしPoC 1のDependency Restore方式はBM-002で確定する。
+BM-002のWTL RestoreはNuGet Packageへ依存せず、Official SourceForge Archive + pinned SHA-256方式を採用した。
 
 DeveloperがWTLを手作業で`C:\Dev\...`へ配置する方式には戻さない。
 
@@ -157,7 +158,7 @@ DeveloperがWTLを手作業で`C:\Dev\...`へ配置する方式には戻さな�
 Visual Studio 2026の導入と同時に最新Compilerへ直接移行すると、
 
 ```text
-VS2013 → VS2026
+Solution metadata VS2013 / author environment VS2017 + v120 → VS2026
 v120   → latest MSVC
 old SDK → current SDK
 ```
@@ -175,7 +176,7 @@ v143 / MSVC 14.44
         +
 Windows SDK 26100
         +
-WTL 9.0.4140
+WTL 9.1.5321 Primary / 9.0.4140 Compatibility
 ```
 
 をBaseline候補とする。
@@ -186,21 +187,24 @@ Modern x86 Regression成立後、最新MSVCへの更新は別Commit / 別Regress
 
 ## 5. WTL Policy
 
-最初のBuildではHistorical Dependencyに合わせ、
+公式v1.6.7 Source TreeにはWTL Version Evidenceの食い違いがある。
+
+`source.txt`は`WTL 9.1 Final`を明記する一方、`LhaForge.vcxproj`には`WTL90_4140_Final`という固定Pathが残っている。
+
+BM-002では次の2 ProfileをHash固定でRestore可能にする。
 
 ```text
-WTL 9.0.4140
+Primary:       WTL 9.1.5321 Final
+Compatibility: WTL 9.0.4140 Final
 ```
 
-を使用する。
+PrimaryはAuthorが明示した`source.txt`を優先する。9.0.4140はProject FileのHistorical Path Evidenceを検証する比較用として保持する。
 
-SourceForgeのWTL 9.0.4140 Final配布物にはSHA-256が公開されているため、Dependency Bootstrapを実装する場合はHash検証を必須とする。
+ArchiveはRepositoryへVendorせず、`tools/restore-wtl.ps1`がOfficial SourceForge配布物を取得してSHA-256を検証した後、`.deps\wtl\<version>`へ展開する。Offline Archiveも`-ArchivePath`で利用できる。
 
-RepositoryへWTLを直接Vendorするか、NuGet / Official archiveからRestoreするかはBM-002で決定する。
+詳細は[Dependency Management](dependencies.md)を参照する。
 
-この段階ではUserがWTLを別途Installする必要はない。
-
-WTL 10.1.0への更新はRegression Baseline成立後に独立して評価する。
+WTL 10.xへの更新はRegression Baseline成立後に独立して評価する。
 
 ---
 
@@ -213,7 +217,8 @@ WTL 10.1.0への更新はRegression Baseline成立後に独立して評価する
 3. 表示されるComponent内容を確認してInstallする。
 4. Preview / Insiders Componentを追加しない。
 5. VS2013、v120、v120_xpを追加Installしない。
-6. WTLを手作業で配置しない。
+6. WTLを手作業で任意Pathへ配置しない。
+7. Visual Studio導入後、`tools/restore-wtl.ps1`でWTLをRepository-managed Restoreする。
 
 `.vsconfig`はSolution Rootへ置かれているため、Visual Studioが不足Componentを検出した場合にもInstallを案内できる。
 
@@ -238,7 +243,7 @@ More
 PoC 1開始前に、次を自己判断でInstall / Copyしない。
 
 ```text
-Visual Studio 2013
+Visual Studio 2013 / 2017 historical IDE recreation
 v120 / v120_xp Toolset
 古いWindows SDK
 WTL 9.0の任意Local Copy
@@ -274,7 +279,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\verify-vs-environmen
 
 Verification ScriptはBuildを行わない。
 
-WTLはBM-002でRepository-managed Dependency Restoreを実装した後にVerification対象へ追加する。
+WTLはBM-002でRepository-managed Dependency Restore対象となり、Default ProfileのWTL 9.1.5321がEnvironment Verification対象となる。
 
 ---
 
@@ -312,7 +317,7 @@ Project File変更はGit差分として管理する。
 ```text
 Baseline compiler family = v143 / 14.44
 Baseline SDK family      = 26100
-Baseline WTL             = 9.0.4140
+Baseline WTL             = 9.1.5321 Primary / 9.0.4140 Compatibility
 ```
 
 固定しないもの:
@@ -376,10 +381,11 @@ PoC 1 Build作業へ進む前に、次を満たす。
 4. ATL v14.44を利用可能。
 5. Windows SDK 26100 familyを利用可能。
 6. `tools/verify-vs-environment.ps1`が成功する。
-7. WTL、v120、VS2013を手動追加していない。
+7. WTL、v120、Historical Visual Studioを任意Local Pathへ手動追加していない。
 8. Repositoryに意図しないProject Retarget差分が発生していない。
 
-このGate成立後、BM-002へ進む。
+Visual Studio / MSVC / SDKのEnvironment Gateは2026-07-29に実機でPassした。
+BM-002適用後はWTL 9.1.5321 Restoreを追加条件として再Verificationする。
 
 ---
 
@@ -393,8 +399,6 @@ PoC 1 Build作業へ進む前に、次を満たす。
   - https://learn.microsoft.com/visualstudio/install/import-export-installation-configurations
 - Windows SDK versioning overview
   - https://learn.microsoft.com/windows/apps/get-started/versioning-overview
-- WTL NuGet package
-  - https://www.nuget.org/packages/wtl/
 - WTL SourceForge archive
   - https://sourceforge.net/projects/wtl/files/
 

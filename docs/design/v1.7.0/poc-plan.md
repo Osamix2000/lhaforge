@@ -17,6 +17,7 @@ Related documents:
 - `installer.md`
 - `build-modernization.md`
 - `development-environment.md`
+- `dependencies.md`
 
 ---
 
@@ -52,6 +53,7 @@ Output:
 - `risk-register.md`
 - `build-modernization.md`
 - `development-environment.md`
+- `dependencies.md`
 - 本Document
 
 Exit:
@@ -98,11 +100,13 @@ User側準備:
 
 Repository Rootの`.vsconfig`と`development-environment.md`に従ってVisual Studio Community 2026 Stableを導入する。
 
-Baselineはv143 / MSVC 14.44 + Windows SDK 26100 familyとする。
+Baselineはv143 / MSVC 14.44 + Windows SDK 26100 familyとする。Visual Studio Environment Gateは実機でPass済みである。
 
-**旧Visual Studio、v120 / v120_xp、旧SDK、WTLを自己判断で追加導入しない。**
+WTLはBM-002の`tools/restore-wtl.ps1`でPrimary 9.1.5321をRestoreする。Project FileのHistorical Pathを検証する必要がある場合のみ9.0.4140 ProfileでもA/B Buildする。
 
-導入後は`tools/verify-vs-environment.ps1`を実行し、Environment Gateを確認する。
+**旧Visual Studio、v120 / v120_xp、旧SDK、WTLを任意Local Pathへ自己判断で追加導入しない。**
+
+WTL Restore後は`tools/verify-vs-environment.ps1`を再実行し、Dependencyを含むEnvironment Gateを確認する。
 
 ---
 

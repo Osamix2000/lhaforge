@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="LhaForgeDependencies">
+    <LhaForgeDependencyRoot Condition="'$(LhaForgeDependencyRoot)'==''">$(MSBuildThisFileDirectory)..\.deps\</LhaForgeDependencyRoot>
+    <LhaForgeWTLVersion Condition="'$(LhaForgeWTLVersion)'==''">9.1.5321</LhaForgeWTLVersion>
+    <LhaForgeWTLRoot>$(LhaForgeDependencyRoot)wtl\$(LhaForgeWTLVersion)\</LhaForgeWTLRoot>
+    <LhaForgeWTLInclude>$(LhaForgeWTLRoot)Include\</LhaForgeWTLInclude>
+  </PropertyGroup>
+</Project>

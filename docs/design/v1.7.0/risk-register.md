@@ -19,7 +19,7 @@ Low
 
 | ID | Level | Risk | Main impact | Mitigation / validation |
 | --- | --- | --- | --- | --- |
-| R-001 | High | 現行BuildがVS2013 / old Toolset / Machine固有WTL Pathへ依存 | Build不能、再現性欠如 | Modern x86 Buildを最初のPoCにする |
+| R-001 | High | VS2013 Solution metadata / VS2017世代Project metadata / v120系Toolset / Machine固有WTL Pathが混在 | Build不能、再現性欠如、Historical環境の誤認 | Modern x86 Buildを最初のPoCにし、Dependency / Toolsetを個別に固定する |
 | R-002 | High | `Release-X64`名称を実x64と誤認 | x64計画の誤判断 | Project Platform / TargetMachineを基準に判定 |
 | R-003 | High | 32bit pointer / time / struct assumption | x64 crash、Data corruption | x64 audit、compile warning、regression test |
 | R-004 | High | Legacy DLLがx86-onlyまたはAPI差異を持つ | Format compatibility低下 | LegacyHost、per-DLL support matrix |
