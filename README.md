@@ -115,11 +115,11 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 ### Architecture Decision Records
 
-* [ADR-0001: v1.6.7を開発基準とする](docs/adr/0001-v1.6.7を開発基準とする.md)
-* [ADR-0002: v1系外部DLL互換を維持する](docs/adr/0002-v1系外部DLL互換を維持する.md)
-* [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64本体とLegacyHostを採用する.md)
-* [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-Built-in%20BackendをFallbackとして持つ.md)
-* [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-署名可能なRelease%20Architectureと最小権限設計を採用する.md)
+* [ADR-0001: v1.6.7を開発基準とする](docs/adr/0001-v1.6.7-baseline.md)
+* [ADR-0002: v1系外部DLL互換を維持する](docs/adr/0002-v1-external-dll-compatibility.md)
+* [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64-main-and-legacyhost.md)
+* [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-built-in-backend-fallback.md)
+* [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-signing-capable-release-and-least-privilege.md)
 
 ## Development Status
 

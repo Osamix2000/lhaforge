@@ -596,11 +596,13 @@ Third-party DocumentationのEncodingをLhaForge都合で書き換えない。
 
 Repository自体のEncoding事故を防ぐため、v1.7.xで新規追加・変更するSource / Markdown / Text Fileは原則UTF-8を使用する。
 
-File NameもGitHub / modern Git Toolで正しく扱えるUnicode名とし、文字化けしたbyte sequenceをそのままCommitしない。
+Repositoryで新規に管理するSource / Design Document File Nameは原則ASCIIを使用し、日本語TitleはMarkdown本文に保持する。Unicode File Nameが必要なCompatibility Test Dataは例外として明示管理し、文字化けしたbyte sequenceをCommitしない。
 
 ### 21.1 Repository path rule
 
-- 新規File Nameはvalid UTF-8として扱える名前にする
+- 新規のSource / Design Document File Nameは原則ASCIIを使用する
+- Unicode File Nameが必要なFixture / Compatibility Test Dataは例外として明示管理する
+- ZIP等で配布するSource TreeはWindows標準展開を含む複数実装でPathのRound-tripを確認する
 - 同一Documentを異なるEncoding由来のFile Nameで重複させない
 - Rename時は旧文字化けFileを削除したことを確認する
 - GitHub上でRelative Linkが解決することを確認する
@@ -612,7 +614,7 @@ File NameにSpaceが存在する場合、Markdown Relative LinkではSpaceをURL
 例:
 
 ```markdown
-[ADR-0004](docs/adr/0004-Built-in%20BackendをFallbackとして持つ.md)
+[ADR-0004](../../adr/0004-built-in-backend-fallback.md)
 ```
 
 将来的なCIで、Tracked PathのUTF-8妥当性とMarkdown Relative Linkの存在確認を自動化することを検討する。
