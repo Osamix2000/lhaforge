@@ -506,13 +506,13 @@ BM-003  COMPLETE
 Retarget project to PlatformToolset v145 / MSVC 14.44 / SDK 26100
 and replace the machine-local WTL include path
 
-BM-004  IN PROGRESS
+BM-004  COMPLETE
 Fix compile blockers only and record them in compile-blockers.md
 
-BM-005
-Produce Debug / Release x86 binaries
+BM-005  COMPLETE
+Produce Debug / Release x86 binaries and pass startup smoke test
 
-BM-006
+BM-006  IN PROGRESS
 Run v1.6.7 regression baseline
 
 BM-007
@@ -580,6 +580,35 @@ CB-001 mitigation後の実機`Debug|Win32` Buildでは、`<hash_map>` C1189を�
 1. `Utilities/PtrCollection.h`の`(T*)& operator[]`がModern MSVCで標準C++宣言としてParseされない。
 2. `ArchiverCode/arc_interface.cpp`で`CA2T(szBuffer)` temporaryを`TRACE`の可変個引数へ直接渡しており、ATL conversion classの非標準varargs passingとして拒否される。
 
-PoC 1ではそれぞれ、意図されていた`T*&`戻り値を標準構文で明示し、ATL conversion結果は`CString`へmaterializeしてから`GetString()`を`TRACE`へ渡す最小修正とする。
+PoC 1ではそれぞれ、意図されていた`T*&`戻り値を標準構文で明示し、ATL conversion結果は`CString`へmaterializeしてから`LPCTSTR`を明示的に確定して`TRACE`へ渡す最小修正とした。
 
 同時に`FileOperation.cpp`の`[[nodiscard]]`戻り値破棄Warning C4834を確認した。これはcorrectnessに関係する可能性があるため抑制せず、Baseline Build成立後の個別Audit対象としてInventoryへ残す。
+
+
+---
+
+## 22. PoC 1 Completion Result
+
+2026-07-30の実機検証でModern x86 Build Gateを完了した。
+
+```text
+Debug|Win32
+  Compile / Resource / Link PASS
+  Startup PASS
+
+Release|Win32
+  Compile / Resource / Link PASS
+  Startup PASS
+```
+
+Resource CompilerはRepository-managed WTL 9.1.5321の`atlres.h`を使用する。
+
+Known non-blocking warning:
+
+- D9035: `/Gm` deprecated
+- C4834: ignored `[[nodiscard]]` result in `FileOperation.cpp`
+- LNK4075: `/EDITANDCONTINUE` ignored with `/SAFESEH`
+
+これらはBaseline成立のために無条件抑制せず、後続Modernizationで個別に扱う。
+
+PoC 1完了後の基準点は[Regression Baseline](regression-baseline.md)で管理する。Actual x64 Buildへ進む前に、Original v1.6.7とのBehavior比較をPoC 2として実施する。

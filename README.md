@@ -117,6 +117,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
 * [Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)
+* [Regression Baseline](docs/design/v1.7.0/regression-baseline.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -130,7 +131,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 ## Development Status
 
-現在はArchitecture / Compatibility設計を維持しながら、PoC 1のBuild Modernization段階へ進んでいます。
+PoC 1のModern x86 Buildは完了し、現在はPoC 2のRegression Baseline確認へ進んでいます。
 
 ```text
 Legacy Baseline              Done
@@ -151,7 +152,8 @@ Encoding Design              Draft
 Design Review                Draft
 PoC Plan                     Draft
 Risk Register                Draft
-Build Modernization          BM-004 compile blocker fixing
+Build Modernization          PoC 1 complete
+Regression Baseline          PoC 2 in progress
 Development Environment      Verified
 Dependency Management        BM-002 verified
 x64 Migration                Not started
@@ -165,15 +167,15 @@ Visual Studio環境はPoC 1用構成で検証済みです。
 
 WTLは`tools/restore-wtl.ps1`でRepository配下へRestoreし、`tools/verify-vs-environment.ps1`でVisual Studio / MSVC / SDKと合わせて確認します。Primary Profileは公式`source.txt`に合わせたWTL 9.1.5321で、Project Fileの旧固定Pathに対応するWTL 9.0.4140も比較用Profileとして保持します。
 
-BM-003のProject Retargetは実機でCompiler起動まで到達し、完了しました。現在はBM-004でModern Toolchain上のCompile Blockerを1件ずつ解消しています。Blockerと一時Compatibility処置は[Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)へ記録します。
+BM-003 Project Retarget、BM-004 Compile Blocker対応、BM-005 Debug / Release x86 Buildまで完了しました。Visual Studio Community 2026 / PlatformToolset v145 / MSVC 14.44 / SDK 26100 / WTL 9.1.5321で`Debug|Win32`と`Release|Win32`がBuild成功し、両方の`LhaForge.exe`でStartup Smoke TestもPassしています。
 
-Legacy `std::hash_map` / `<hash_map>`、`PtrCollection.h`の旧宣言構文、`arc_interface.cpp`のATL conversion / variadic `TRACE` Blockerは実機Compileで通過しました。現在のBlockerはResource Compilerが`atlres.h`を見つけられない`RC1015`です。実機確認により`atlres.h`はMicrosoft ATL側ではなくRestore済みWTL側のResource Headerとして扱うべきことを確認したため、`ResourceCompile`へ`$(LhaForgeWTLInclude)`を追加し、WTL Restore/Environment Verificationでも`atlres.h`を検証する修正へ切り替えています。次のx86 Buildも同じコマンドで実行します。
+PoC 1のBuild Evidenceは次で再確認できます。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
+powershell -NoProfile -ExecutionPolicy Bypass -File .	oolserify-poc-x86-baseline.ps1
 ```
 
-新しいBuild Errorは新機能実装で回避せず、BM-004のCompile Blocker Inventoryへ記録して切り分けます。
+現在はPoC 2として、Modern x86 BuildをOriginal v1.6.7とのBehavior比較基準に固定する[Regression Baseline](docs/design/v1.7.0/regression-baseline.md)へ進んでいます。Actual x64化はこのBaseline確認後に開始します。
 
 ## Development Principles
 

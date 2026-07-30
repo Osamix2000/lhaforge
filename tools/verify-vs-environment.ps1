@@ -176,8 +176,11 @@ else {
     $wtlPackage = @($wtlConfig.packages | Where-Object { [string]$_.version -eq $wtlVersion }) | Select-Object -First 1
     $wtlInclude = Join-Path $repoRoot ('.deps\wtl\{0}\Include' -f $wtlVersion)
     $wtlHeader = Join-Path $wtlInclude 'atlapp.h'
+    $wtlResourceHeader = Join-Path $wtlInclude 'atlres.h'
+    $wtlHeaderOk = Test-Path -LiteralPath $wtlHeader -PathType Leaf
+    $wtlResourceHeaderOk = Test-Path -LiteralPath $wtlResourceHeader -PathType Leaf
     $wtlMetadataPath = Join-Path $repoRoot ('.deps\wtl\{0}\.restore-metadata.json' -f $wtlVersion)
-    $wtlOk = (Test-Path -LiteralPath $wtlHeader -PathType Leaf) -and ($null -ne $wtlPackage)
+    $wtlOk = $wtlHeaderOk -and $wtlResourceHeaderOk -and ($null -ne $wtlPackage)
 
     if ($wtlOk -and (Test-Path -LiteralPath $wtlMetadataPath -PathType Leaf)) {
         try {
@@ -193,7 +196,9 @@ else {
         $wtlOk = $false
     }
 
-    Write-CheckResult -Name ('WTL {0}' -f $wtlVersion) -Ok $wtlOk -Detail $wtlInclude
+    Write-CheckResult -Name ('WTL {0} atlapp.h' -f $wtlVersion) -Ok $wtlHeaderOk -Detail $wtlHeader
+    Write-CheckResult -Name ('WTL {0} atlres.h' -f $wtlVersion) -Ok $wtlResourceHeaderOk -Detail $wtlResourceHeader
+    Write-CheckResult -Name ('WTL {0} restore metadata' -f $wtlVersion) -Ok $wtlOk -Detail $wtlMetadataPath
     if (-not $wtlOk) {
         Write-Host '      Run: powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\restore-wtl.ps1'
         $failed = $true

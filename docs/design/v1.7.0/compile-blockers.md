@@ -1,6 +1,6 @@
 # LhaForge v1.7.0 Compile Blocker Inventory
 
-- Status: Active
+- Status: PoC 1 complete / retained as historical inventory
 - Target: PoC 1 / Modern x86 Build
 - Baseline: LhaForge v1.6.7
 - Toolchain: Visual Studio Community 2026 / PlatformToolset v145 / MSVC 14.44 / Windows SDK 26100 / WTL 9.1.5321
@@ -183,7 +183,7 @@ TRACE(_T("%s\n"),strTrace.GetString());
 
 ### Status
 
-First fix rejected by environment verification / corrected fix applied / awaiting next build
+Verified / Debug and Release builds passed
 
 ### First observed
 
@@ -244,8 +244,12 @@ $(LhaForgeWTLInclude)
 
 Resource Headerも通常のWTL Headerと同じVersion-pinned Dependencyとして扱い、固定絶対PathやVisual Studio内部配置へ依存させない。
 
+### Verification
+
+Corrected fix適用後、実機で`Debug|Win32`および`Release|Win32`がResource Compile / Linkを含めて完了した。
 
 ---
+
 
 ## 6. BW-001: `/Gm` deprecation warning
 
@@ -290,7 +294,27 @@ FileOperation.cpp(675,34): warning C4834
 
 ---
 
-## 8. Current Gate
+## 8. BW-003: `/EDITANDCONTINUE` ignored with `/SAFESEH`
+
+### Status
+
+Observed / non-blocking / deferred
+
+### Compiler output
+
+Debug Linkで次を確認した。
+
+```text
+warning LNK4075: /EDITANDCONTINUE is ignored due to /SAFESEH
+```
+
+### Decision
+
+Debug Buildは正常完了しておりPoC 1のBlockerではない。Historical Debug Settingの整理時に、Edit and ContinueとSafeSEHの現在の意図を確認してBuild-only Optionとして整理する。
+
+---
+
+## 9. Current Gate
 
 ```text
 BM-003 Project Retarget
@@ -300,9 +324,15 @@ BM-004 Compile Blocker Fix
     CB-001 verified
     CB-002 verified
     CB-003 verified
-    CB-004 WTL resource header include fix corrected/applied
+    CB-004 verified
         ↓
-Next Debug|Win32 build
+BM-005 x86 Build
+    Debug|Win32   PASS
+    Release|Win32 PASS
+    Debug startup PASS
+    Release startup PASS
 ```
 
-次回Buildで新たなCompiler / Linker Errorが発生した場合、このInventoryへ追記して1件ずつ切り分ける。
+PoC 1のModern x86 Build Gateは完了した。
+
+以降のCompiler / Linker Warningは無条件に抑制せず、Regression Baselineまたは該当Modernization Changeで分類する。

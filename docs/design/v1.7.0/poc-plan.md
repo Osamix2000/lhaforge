@@ -116,7 +116,21 @@ BM-001 / BM-002 Gateは実機でPass済み。BM-003ではProject FileをPlatform
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
 ```
 
-BM-003直後のBuildは実機でCompiler実行まで到達し、BM-003 Retarget GateはPassした。CB-001 `<hash_map>` compatibility mitigation後はさらにProject全体のCompileが進み、現在は旧C++宣言構文とATL conversion / varargs境界のBlockerを最小修正している。以降のCompiler / Linker Errorも失敗扱いで捨てず、BM-004の[Compile Blocker Inventory](compile-blockers.md)へそのまま記録する。
+BM-003直後のBuildは実機でCompiler実行まで到達し、BM-003 Retarget GateをPassした。その後のBM-004で`<hash_map>`、旧Pointer declarator、ATL conversion / varargs、WTL Resource HeaderのCompile Blockerを最小修正した。
+
+2026-07-30に実機で次を確認済み:
+
+```text
+Debug|Win32   Build PASS
+Debug startup PASS
+
+Release|Win32 Build PASS
+Release startup PASS
+```
+
+Status: **Complete**
+
+Build / startupの詳細Evidenceと次段のBehavior比較は[Regression Baseline](regression-baseline.md)へ引き継ぐ。
 
 ---
 
@@ -146,6 +160,12 @@ Output:
 - regression checklist
 - known-difference list
 - baseline test assets
+
+Status: **In progress**
+
+最初に`tools/verify-poc-x86-baseline.ps1`でDebug / Release BuildとPE Architectureを再確認し、その後User設定・External DLL・Registry変更を分離したBehavior Testへ進む。
+
+詳細は[Regression Baseline](regression-baseline.md)を参照する。
 
 ---
 

@@ -73,7 +73,7 @@ if ($exitCode -eq 0) {
 }
 else {
     Write-Host ('[BUILD] {0}|Win32 failed with exit code {1}.' -f $Configuration, $exitCode)
-    Write-Host '[BUILD] Keep the compiler/MSBuild errors unchanged and use them as the BM-004 blocker inventory.'
+    Write-Host '[BUILD] Keep compiler/MSBuild errors unchanged and record the failure before applying a fix.'
 }
 
 exit $exitCode
