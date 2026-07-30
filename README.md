@@ -118,6 +118,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
 * [Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)
 * [Regression Baseline](docs/design/v1.7.0/regression-baseline.md)
+* [PoC 2-A UI Regression](docs/design/v1.7.0/regression-ui.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -175,7 +176,7 @@ PoC 1のBuild Evidenceは次で再確認できます。
 powershell -NoProfile -ExecutionPolicy Bypass -File .	oolserify-poc-x86-baseline.ps1
 ```
 
-現在はPoC 2として、Modern x86 BuildをOriginal v1.6.7とのBehavior比較基準に固定する[Regression Baseline](docs/design/v1.7.0/regression-baseline.md)へ進んでいます。Actual x64化はこのBaseline確認後に開始します。
+現在はPoC 2としてOriginal v1.6.7とのBehavior比較へ進んでいます。最初のPoC 2-AではOriginal / Modern x86をModule-local INI付きSandboxへStagingし、外部AppData / ProgramDataを変更せずUI / Configuration readを比較します。手順は[PoC 2-A UI Regression](docs/design/v1.7.0/regression-ui.md)を参照します。Actual x64化はこのBaseline確認後に開始します。
 
 ## Development Principles
 

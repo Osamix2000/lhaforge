@@ -163,9 +163,14 @@ Output:
 
 Status: **In progress**
 
-最初に`tools/verify-poc-x86-baseline.ps1`でDebug / Release BuildとPE Architectureを再確認し、その後User設定・External DLL・Registry変更を分離したBehavior Testへ進む。
+`tools/verify-poc-x86-baseline.ps1`によるDebug / Release BuildとPE Architecture確認はPass済み。
 
-詳細は[Regression Baseline](regression-baseline.md)を参照する。
+現在はPoC 2-Aとして、Original v1.6.7 / Modern x86をModule-local INI付きSandboxへStagingし、外部AppData / ProgramDataを変更せずUI / Configuration readを比較する。
+
+詳細:
+
+- [Regression Baseline](regression-baseline.md)
+- [PoC 2-A UI Regression](regression-ui.md)
 
 ---
 

@@ -138,19 +138,21 @@ Status: **Pass**
 
 ### Layer B: UI / Configuration
 
-Status: **Pending**
+Status: **In progress (PoC 2-A)**
 
 確認対象:
 
+- Configuration DialogをOriginal / Modernで比較
 - Main Window基本操作
-- Configuration Dialogを開閉
 - File List Window
 - Menu / Toolbar
 - About / Version表示
 - Existing configuration read
 - Configuration save / reload
 
-既存User設定を壊さないよう、設定保存先とIsolation方法をSource確認してからWrite testを行う。
+Source確認の結果、Module-local `LhaForge.ini` / `LFCaldix.ini`を配置したStaged EXEを使用することで、AppData / ProgramData fallbackを避けられる。PoC 2-A first passでは`AskUpdate=0`の隔離Configを使用し、DialogはCancelで閉じる。
+
+手順は[PoC 2-A UI Regression](regression-ui.md)を参照する。
 
 ### Layer C: Archive Operations
 
