@@ -848,7 +848,10 @@ void CArchiverDLL::WriteResponceFile(HANDLE hFile,LPCTSTR fname,bool bQuoteSpace
 
 	strncpy_s(szBuffer,CT2A(path),_MAX_PATH);
 
-	TRACE(_T("%s\n"),CA2T(szBuffer));
+	CString strTrace;
+	strTrace=CA2T(szBuffer);
+	LPCTSTR lpszTrace=strTrace;
+	TRACE(_T("%s\n"),lpszTrace);
 
 	DWORD dwWritten=0;
 	//ファイル名を出力

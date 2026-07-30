@@ -238,7 +238,8 @@ Status: **Resolved**
 確定済み:
 
 - Visual Studio Community 2026 Stable
-- v143 / MSVC 14.44 family
+- PlatformToolset v145
+- MSVC 14.44 compiler family
 - Windows SDK 26100 family
 - ATL v14.44
 - WTL Primary 9.1.5321 / Compatibility 9.0.4140

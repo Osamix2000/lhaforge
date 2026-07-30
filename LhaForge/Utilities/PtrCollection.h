@@ -83,6 +83,6 @@ public:
 		m_Array.push_back(lpT);
 	}
 
-	(T*)& operator[](size_t idx){return m_Array[idx];}
+	T*& operator[](size_t idx){return m_Array[idx];}
 	size_t size()const{return m_Array.size();}
 };

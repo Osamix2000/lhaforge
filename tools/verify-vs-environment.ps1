@@ -95,6 +95,18 @@ else {
         $failed = $true
     }
 
+    $platformToolsetWin32 = Join-Path $installationPath 'MSBuild\Microsoft\VC\v180\Platforms\Win32\PlatformToolsets\v145'
+    $platformToolsetX64 = Join-Path $installationPath 'MSBuild\Microsoft\VC\v180\Platforms\x64\PlatformToolsets\v145'
+    $platformToolsetWin32Ok = Test-Path -LiteralPath $platformToolsetWin32 -PathType Container
+    $platformToolsetX64Ok = Test-Path -LiteralPath $platformToolsetX64 -PathType Container
+
+    Write-CheckResult -Name 'MSBuild PlatformToolset v145 Win32' -Ok $platformToolsetWin32Ok -Detail $platformToolsetWin32
+    Write-CheckResult -Name 'MSBuild PlatformToolset v145 x64' -Ok $platformToolsetX64Ok -Detail $platformToolsetX64
+
+    if (-not $platformToolsetWin32Ok -or -not $platformToolsetX64Ok) {
+        $failed = $true
+    }
+
     $msvcRoot = Join-Path $installationPath 'VC\Tools\MSVC'
     $msvcVersions = @()
     if (Test-Path -LiteralPath $msvcRoot) {
@@ -106,7 +118,7 @@ else {
     }
 
     if ($msvcVersions.Count -eq 0) {
-        Write-CheckResult -Name 'MSVC v143 / 14.44 family' -Ok $false -Detail $msvcRoot
+        Write-CheckResult -Name 'MSVC 14.44 compiler family' -Ok $false -Detail $msvcRoot
         $failed = $true
     }
     else {
@@ -122,7 +134,7 @@ else {
         $atlWinOk = Test-Path -LiteralPath $atlWinHeader
         $atlOk = $atlBaseOk -and $atlWinOk
 
-        Write-CheckResult -Name 'MSVC v143 / 14.44 family' -Ok ($clX86Ok -and $clX64Ok) -Detail $selectedMsvc.Name
+        Write-CheckResult -Name 'MSVC 14.44 compiler family' -Ok ($clX86Ok -and $clX64Ok) -Detail $selectedMsvc.Name
         Write-CheckResult -Name 'MSVC x86 compiler' -Ok $clX86Ok -Detail $clX86
         Write-CheckResult -Name 'MSVC x64 compiler' -Ok $clX64Ok -Detail $clX64
         Write-CheckResult -Name 'ATL 14.44 atlbase.h' -Ok $atlBaseOk -Detail $atlBaseHeader

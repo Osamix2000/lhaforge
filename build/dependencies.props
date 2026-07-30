@@ -6,4 +6,22 @@
     <LhaForgeWTLRoot>$(LhaForgeDependencyRoot)wtl\$(LhaForgeWTLVersion)\</LhaForgeWTLRoot>
     <LhaForgeWTLInclude>$(LhaForgeWTLRoot)Include\</LhaForgeWTLInclude>
   </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(LhaForgeWTLInclude);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(LhaForgeWTLInclude);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+
+  <Target Name="ValidateLhaForgeDependencies" BeforeTargets="PrepareForBuild">
+    <Error
+      Condition="!Exists('$(LhaForgeWTLInclude)atlapp.h')"
+      Text="WTL $(LhaForgeWTLVersion) is not restored. Run: powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\restore-wtl.ps1" />
+    <Error
+      Condition="!Exists('$(LhaForgeWTLInclude)atlres.h')"
+      Text="WTL resource header atlres.h is missing. Restore WTL $(LhaForgeWTLVersion) again with tools\restore-wtl.ps1." />
+  </Target>
 </Project>

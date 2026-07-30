@@ -106,11 +106,11 @@ Workload
   Desktop development with C++
 
 Baseline compiler
-  v143 / MSVC 14.44 family
+  MSVC 14.44 compiler family
   x86 / x64 Build Tools
 
 ATL
-  ATL for v143 / MSVC 14.44
+  ATL for MSVC 14.44
 
 Windows SDK
   Windows 11 SDK 10.0.26100 family
@@ -119,7 +119,7 @@ Target Platform Version candidate
   10.0.26100.0
 ```
 
-Visual Studio 2026で提供されるLatest MSVCをPoC 1のBaselineには使用せず、v143 / 14.44を明示的に利用する。IDE更新とCompiler世代更新を分離し、Modern x86 Regression成立後にLatest MSVCを別Changeとして評価する。
+Visual Studio 2026で提供されるLatest MSVCをPoC 1のBaselineには使用せず、MSVC 14.44を`VCToolsVersion`で明示的に固定する。MSBuild統合にはVS2026の`PlatformToolset v145`を使用する。IDE更新とCompiler世代更新を分離し、Modern x86 Regression成立後にLatest MSVCを別Changeとして評価する。
 
 Community Editionは個人開発およびOpen Source用途で利用可能なため、本Forkの標準開発IDE候補とする。
 
@@ -410,7 +410,73 @@ Git clone
 
 ---
 
-## 15. Initial Build Gate
+## 15. BM-003 Retarget Applied
+
+### 15.1 First Build Finding
+
+初回`Debug|Win32` Buildでは`MSB8020`となり、実機のVS2026 MSBuild Platform Toolset配置を確認した。
+
+確認結果:
+
+```text
+VC\Tools\MSVC\14.44.35207             present
+MSBuild ... Win32\PlatformToolsets\v145  present
+MSBuild ... x64\PlatformToolsets\v145    present
+MSBuild ... PlatformToolsets\v143          not present
+```
+
+このためBM-003の指定を修正し、MSBuild統合とCompiler Versionを分離する。
+
+```text
+PlatformToolset = v145
+VCToolsVersion  = 14.44.35207
+```
+
+`v145`はProject/MSBuild統合の選択であり、PoC 1のCompilerを最新Versionへ変更する意味ではない。Compiler本体は`VCToolsVersion`で14.44.35207へ固定する。
+
+
+BM-003ではSource Codeを変更せず、Build定義のみを最小限Retargetする。
+
+適用内容:
+
+```text
+ToolsVersion                15.0 -> Current
+PlatformToolset             v120 / v120_xp -> v145
+VCToolsVersion              14.44.35207
+WindowsTargetPlatformVersion 10.0.26100.0
+WTL Include                 Machine local path -> build/dependencies.props
+```
+
+対象は既存Project Configuration全体のToolset参照であるが、PoC 1で実際にBuildするConfigurationはSolutionに存在する次の2つだけとする。
+
+```text
+Debug|Win32
+Release|Win32
+```
+
+`Release-X64|Win32`はProject内部にHistorical Evidenceとして残す。Platformは依然`Win32`であり、BM-003ではx64 Configurationへ変換しない。
+
+旧`IncludePath`に存在した、
+
+```text
+C:\Dev\vc2013\WTL90_4140_Final\Include
+```
+
+は削除し、Standard VC / Windows SDK Include PathはMSBuild Toolchainへ任せる。WTLだけを`AdditionalIncludeDirectories`としてRepository-managed Property Sheetから追加する。
+
+Dependency未Restore時は`build/dependencies.props`がBuild開始前に停止し、暗黙Downloadは行わない。
+
+Build Helper:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
+```
+
+このBuildで生じるErrorをBM-004 Compile Blocker Inventoryの入力とする。
+
+---
+
+## 16. Initial Build Gate
 
 PoC 1のExit Criteria:
 
@@ -426,21 +492,22 @@ PoC 1のExit Criteria:
 
 ---
 
-## 16. Proposed Change Sequence
+## 17. Proposed Change Sequence
 
 ```text
 BM-001  COMPLETE
 Add build documentation / .vsconfig / environment verification
 
-BM-002  IMPLEMENTED
+BM-002  COMPLETE
 Add hash-pinned WTL 9.1.5321 / 9.0.4140 restore
-and define repository-managed dependency paths
+and verify repository-managed dependency paths
 
-BM-003
-Retarget x86 project to modern MSVC / SDK
+BM-003  COMPLETE
+Retarget project to PlatformToolset v145 / MSVC 14.44 / SDK 26100
+and replace the machine-local WTL include path
 
-BM-004
-Fix compile blockers only
+BM-004  IN PROGRESS
+Fix compile blockers only and record them in compile-blockers.md
 
 BM-005
 Produce Debug / Release x86 binaries
@@ -462,7 +529,7 @@ Start actual x64 configuration
 
 ---
 
-## 17. User Preparation
+## 18. User Preparation
 
 Repository Rootに`.vsconfig`と`development-environment.md`を追加したため、PoC 1の開発環境準備Gateは成立した。
 
@@ -470,11 +537,13 @@ User側ではこの時点からVisual Studio Community 2026 Stableを導入し�
 
 旧Visual Studio、v120、v120_xp、WTLを任意Local Pathへ手作業で追加導入しない。
 
-Visual Studio Environment Gateは通過済みである。BM-002適用後は`tools/restore-wtl.ps1`でPrimary WTLをRestoreし、`tools/verify-vs-environment.ps1`でDependencyを含むPrerequisiteを再確認する。
+Visual Studio Environment GateとWTL Restoreを含むBM-002 Gateは実機で通過済みである。
+
+BM-003適用後は`tools/build-poc-x86.ps1`から`Debug|Win32`を最初にBuildし、失敗した場合は出力を変更せずBM-004のBlocker Inventoryとして扱う。
 
 ---
 
-## 18. Open Items
+## 19. Open Items
 
 - Windows SDK 26100 familyのServicing Build差異がBuildへ与える影響
 - Minimum supported Windows Version
@@ -487,3 +556,30 @@ Visual Studio Environment Gateは通過済みである。BM-002適用後は`tool
 - CI Build環境
 
 これらはPoC 1開始前または該当Phase直前に確定する。
+
+## 20. BM-004 First Compile Result
+
+BM-003適用後の実機`Debug|Win32` BuildはMSBuild / PlatformToolset / MSVC / SDK / ATL / WTLを通過し、`stdafx.cpp`のCompiler実行まで到達した。これによりBM-003 Retarget GateはPassとする。
+
+最初のBlockerはMSVC 14.44で`<hash_map>`がDeprecation ErrorとなるC1189である。
+
+PoC 1ではBehavior差を避けるため、直ちに`std::unordered_map`へ置換せず、`build/legacy-compat.props`に`_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS`を隔離してBaseline Compileを継続する。
+
+詳細と恒久対応方針は[Compile Blocker Inventory](compile-blockers.md)を参照する。
+
+同時に確認された`/Gm` D9035はBuild Blockerではないため、このStepではProject Settingを変更せずInventoryへ記録する。
+
+
+
+## 21. BM-004 Second Compile Result
+
+CB-001 mitigation後の実機`Debug|Win32` Buildでは、`<hash_map>` C1189を通過し、多数のTranslation UnitのCompileへ進んだ。
+
+新たなBlockerは2系統である。
+
+1. `Utilities/PtrCollection.h`の`(T*)& operator[]`がModern MSVCで標準C++宣言としてParseされない。
+2. `ArchiverCode/arc_interface.cpp`で`CA2T(szBuffer)` temporaryを`TRACE`の可変個引数へ直接渡しており、ATL conversion classの非標準varargs passingとして拒否される。
+
+PoC 1ではそれぞれ、意図されていた`T*&`戻り値を標準構文で明示し、ATL conversion結果は`CString`へmaterializeしてから`GetString()`を`TRACE`へ渡す最小修正とする。
+
+同時に`FileOperation.cpp`の`[[nodiscard]]`戻り値破棄Warning C4834を確認した。これはcorrectnessに関係する可能性があるため抑制せず、Baseline Build成立後の個別Audit対象としてInventoryへ残す。

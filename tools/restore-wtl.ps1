@@ -60,7 +60,8 @@ $requiredHeaders = @(
     'Include\atlcrack.h',
     'Include\atlctrls.h',
     'Include\atlframe.h',
-    'Include\atlmisc.h'
+    'Include\atlmisc.h',
+    'Include\atlres.h'
 )
 
 $existingValid = $true

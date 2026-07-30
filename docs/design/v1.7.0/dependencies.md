@@ -89,7 +89,9 @@ Restore先:
 `.deps\`はGenerated Dependency AreaでありGit管理しない。
 
 Project側のDependency Propertyは`build/dependencies.props`へ集約する。
-BM-003でProjectをRetargetするとき、このProperty SheetをImportしてMachine固有Pathを除去する。
+BM-003で`LhaForge.vcxproj`からこのProperty SheetをImportし、Machine固有Pathを除去した。
+
+`build/dependencies.props`はWTL Include Directoryを`AdditionalIncludeDirectories`へ追加し、`atlapp.h`が存在しない場合はBuild開始前に明示的なErrorを出す。Build中にNetwork Restoreは実行しない。
 
 ## 6. Restore command
 
@@ -161,9 +163,12 @@ atlcrack.h
 atlctrls.h
 atlframe.h
 atlmisc.h
+atlres.h
 ```
 
 `atlwin.h`はWTL Restore先の完全性判定には使用しない。ATL HeaderはVisual Studio / ATL Component側のEnvironment Verificationで確認する。
+
+一方、`atlres.h`はWTL側のResource Headerとして扱い、WTL Restoreの完全性検証対象に含める。Resource Compilerにも`$(LhaForgeWTLInclude)`を渡す。
 
 WTL Restoreは上記WTL固有HeaderがRestore先の`Include`に存在することを検証する。
 
@@ -175,7 +180,8 @@ Environment Gateは次が全て揃った場合にPassする。
 
 ```text
 Visual Studio 2026
-MSVC v143 / 14.44
+PlatformToolset v145
+MSVC 14.44
 ATL 14.44
 Windows SDK 26100 family
 WTL 9.1.5321 restored

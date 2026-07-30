@@ -100,13 +100,23 @@ User側準備:
 
 Repository Rootの`.vsconfig`と`development-environment.md`に従ってVisual Studio Community 2026 Stableを導入する。
 
-Baselineはv143 / MSVC 14.44 + Windows SDK 26100 familyとする。Visual Studio Environment Gateは実機でPass済みである。
+BaselineはPlatformToolset v145 + MSVC 14.44 + Windows SDK 26100 familyとする。Visual Studio Environment Gateは実機でPass済みである。
 
 WTLはBM-002の`tools/restore-wtl.ps1`でPrimary 9.1.5321をRestoreする。Project FileのHistorical Pathを検証する必要がある場合のみ9.0.4140 ProfileでもA/B Buildする。
 
 **旧Visual Studio、v120 / v120_xp、旧SDK、WTLを任意Local Pathへ自己判断で追加導入しない。**
 
 WTL Restore後は`tools/verify-vs-environment.ps1`を再実行し、Dependencyを含むEnvironment Gateを確認する。
+
+BM-001 / BM-002 Gateは実機でPass済み。BM-003ではProject FileをPlatformToolset v145へRetargetし、`VCToolsVersion=14.44.35207`、SDK 26100、Repository-managed WTL参照を適用する。
+
+最初のBuild:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
+```
+
+BM-003直後のBuildは実機でCompiler実行まで到達し、BM-003 Retarget GateはPassした。CB-001 `<hash_map>` compatibility mitigation後はさらにProject全体のCompileが進み、現在は旧C++宣言構文とATL conversion / varargs境界のBlockerを最小修正している。以降のCompiler / Linker Errorも失敗扱いで捨てず、BM-004の[Compile Blocker Inventory](compile-blockers.md)へそのまま記録する。
 
 ---
 

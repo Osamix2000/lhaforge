@@ -85,6 +85,8 @@ Microsoft.VisualStudio.Component.Windows11SDK.26100
 Microsoft.VisualStudio.Component.NuGet
 ```
 
+> Note: `.vsconfig`のComponent ID中の`143`はVisual Studio Installer上のLegacy compiler package group名であり、Projectの`PlatformToolset`指定を意味しない。PoC 1実機ではMSVC 14.44 compilerが導入され、MSBuild Platform Toolset登録はv145である。
+
 ### 3.1 Desktop development with C++
 
 ```text
@@ -98,14 +100,14 @@ MSBuild、C++ IDE、Debugger等の基本Desktop Development環境を提供する
 PoC 1では、
 
 ```text
-v143
-MSVC 14.44 family
+PlatformToolset v145
+MSVC 14.44 compiler family
 x86 / x64 Build Tools
 ```
 
 をBaseline Toolsetとする。
 
-Visual Studio 2026にはより新しいMSVCも存在するが、最初のBuildでCompiler差分を増やさないため、VS2022最終世代のv143 / 14.44を意図的に利用する。
+Visual Studio 2026にはより新しいMSVCも存在するが、最初のBuildでCompiler差分を増やさないため、Compiler本体はMSVC 14.44へ固定する。一方、MSBuildのPlatform Toolset統合はVS2026に存在するv145を使用する。
 
 x64 Build Toolsも導入するが、PoC 1のTargetはWin32である。
 
@@ -153,7 +155,7 @@ DeveloperがWTLを手作業で`C:\Dev\...`へ配置する方式には戻さな�
 
 ---
 
-## 4. Why v143 Instead of Latest MSVC
+## 4. Why MSVC 14.44 Instead of Latest Compiler
 
 Visual Studio 2026の導入と同時に最新Compilerへ直接移行すると、
 
@@ -172,7 +174,9 @@ old SDK → current SDK
 ```text
 Visual Studio 2026 IDE
         +
-v143 / MSVC 14.44
+PlatformToolset v145
+        +
+MSVC 14.44
         +
 Windows SDK 26100
         +
@@ -300,7 +304,7 @@ WTL Include = C:\Dev\vc2013\WTL90_4140_Final\Include
 
 ```text
 BM-002 WTL Restore
-BM-003 v143 / SDK Retarget
+BM-003 v145 integration / MSVC 14.44 / SDK Retarget
 BM-004 Compile blocker fix
 ```
 
@@ -315,7 +319,8 @@ Project File変更はGit差分として管理する。
 固定するもの:
 
 ```text
-Baseline compiler family = v143 / 14.44
+Baseline PlatformToolset  = v145
+Baseline compiler family = MSVC 14.44
 Baseline SDK family      = 26100
 Baseline WTL             = 9.1.5321 Primary / 9.0.4140 Compatibility
 ```
@@ -377,19 +382,44 @@ PoC 1 Build作業へ進む前に、次を満たす。
 
 1. Visual Studio Community 2026 Stableが導入済み。
 2. `.vsconfig`のRequired Componentが導入済み。
-3. v143 x86 / x64 Toolsetを利用可能。
-4. ATL v14.44を利用可能。
-5. Windows SDK 26100 familyを利用可能。
-6. `tools/verify-vs-environment.ps1`が成功する。
-7. WTL、v120、Historical Visual Studioを任意Local Pathへ手動追加していない。
-8. Repositoryに意図しないProject Retarget差分が発生していない。
+3. VS2026のPlatformToolset v145をWin32 / x64で利用可能。
+4. MSVC 14.44 x86 / x64 compilerを利用可能。
+5. ATL v14.44を利用可能。
+6. Windows SDK 26100 familyを利用可能。
+7. `tools/verify-vs-environment.ps1`が成功する。
+8. WTL、v120、Historical Visual Studioを任意Local Pathへ手動追加していない。
+9. Repositoryに意図しないProject Retarget差分が発生していない。
 
 Visual Studio / MSVC / SDKのEnvironment Gateは2026-07-29に実機でPassした。
-BM-002適用後はWTL 9.1.5321 Restoreを追加条件として再Verificationする。
+BM-002適用後のWTL 9.1.5321 Restoreを含むEnvironment Gateも実機でPass済みである。
 
 ---
 
-## 14. References
+## 14. PoC 1 x86 Build Command
+
+BM-003適用後、最初のBuildはVisual Studio UIから手動Retargetせず、RepositoryのBuild Helperを使用する。
+
+Debug:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
+```
+
+Release:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Release
+```
+
+Rebuildが必要な場合のみ`-Rebuild`を指定する。
+
+Build Helperは最初に`verify-vs-environment.ps1`を実行し、Environment Gateが通った場合のみ`LhaForge.sln`の`Win32` Buildを開始する。
+
+BM-003時点ではBuild成功を前提としない。Modern Compiler / SDKで露出したErrorはBM-004のCompile Blockerとして分類し、Source変更はBlocker解消に必要な最小範囲へ限定する。
+
+---
+
+## 15. References
 
 - Microsoft Visual Studio 2026 release notes
   - https://learn.microsoft.com/visualstudio/releases/2026/release-notes
@@ -408,3 +438,26 @@ BM-002適用後はWTL 9.1.5321 Restoreを追加条件として再Verificationす
 
 Environment verifierでは`vswhere -format json -utf8 | ConvertFrom-Json`を使用せず、必要な`-property`を個別に取得する。JSONが必要な場合はbyte-levelでEncodingを明示してDecodeするか、PowerShell 7専用処理として分離する。
 
+
+
+## 15. VS2026 Platform Toolset Verification
+
+PoC 1実機ではMSVC 14.44の`cl.exe`とATLが存在していても、MSBuildの`PlatformToolsets`には`v145`のみが存在し、`v143`は存在しなかった。
+
+そのためEnvironment GateはCompiler Fileの存在だけでなく、次も確認する。
+
+```text
+MSBuild\Microsoft\VC\v180\Platforms\Win32\PlatformToolsets\v145
+MSBuild\Microsoft\VC\v180\Platforms\x64\PlatformToolsets\v145
+```
+
+PoC 1のBuild Contractは次のように分離する。
+
+```text
+MSBuild integration  PlatformToolset v145
+Compiler             VCToolsVersion 14.44.35207
+ATL                  14.44
+SDK                  10.0.26100.0
+```
+
+この区別により、VS2026のBuild integrationを利用しながらCompiler世代を14.44へ固定する。

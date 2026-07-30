@@ -116,6 +116,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [PoC Plan](docs/design/v1.7.0/poc-plan.md)
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
+* [Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -129,7 +130,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 ## Development Status
 
-現在は実装開始前のArchitecture / Compatibility設計段階です。
+現在はArchitecture / Compatibility設計を維持しながら、PoC 1のBuild Modernization段階へ進んでいます。
 
 ```text
 Legacy Baseline              Done
@@ -150,19 +151,29 @@ Encoding Design              Draft
 Design Review                Draft
 PoC Plan                     Draft
 Risk Register                Draft
-Build Modernization          Draft
+Build Modernization          BM-004 compile blocker fixing
 Development Environment      Verified
-Dependency Management        BM-002 implemented
+Dependency Management        BM-002 verified
 x64 Migration                Not started
 ```
 
 PoC 1用の開発環境定義としてRepository Rootに`.vsconfig`を用意しています。
 
-標準環境はVisual Studio Community 2026 Stable + v143 / MSVC 14.44 + Windows SDK 26100 familyです。詳細は[Development Environment](docs/design/v1.7.0/development-environment.md)を参照してください。
+標準環境はVisual Studio Community 2026 Stable + PlatformToolset v145 + MSVC 14.44 + Windows SDK 26100 familyです。詳細は[Development Environment](docs/design/v1.7.0/development-environment.md)を参照してください。
 
 Visual Studio環境はPoC 1用構成で検証済みです。
 
 WTLは`tools/restore-wtl.ps1`でRepository配下へRestoreし、`tools/verify-vs-environment.ps1`でVisual Studio / MSVC / SDKと合わせて確認します。Primary Profileは公式`source.txt`に合わせたWTL 9.1.5321で、Project Fileの旧固定Pathに対応するWTL 9.0.4140も比較用Profileとして保持します。
+
+BM-003のProject Retargetは実機でCompiler起動まで到達し、完了しました。現在はBM-004でModern Toolchain上のCompile Blockerを1件ずつ解消しています。Blockerと一時Compatibility処置は[Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)へ記録します。
+
+Legacy `std::hash_map` / `<hash_map>`、`PtrCollection.h`の旧宣言構文、`arc_interface.cpp`のATL conversion / variadic `TRACE` Blockerは実機Compileで通過しました。現在のBlockerはResource Compilerが`atlres.h`を見つけられない`RC1015`です。実機確認により`atlres.h`はMicrosoft ATL側ではなくRestore済みWTL側のResource Headerとして扱うべきことを確認したため、`ResourceCompile`へ`$(LhaForgeWTLInclude)`を追加し、WTL Restore/Environment Verificationでも`atlres.h`を検証する修正へ切り替えています。次のx86 Buildも同じコマンドで実行します。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-poc-x86.ps1 -Configuration Debug
+```
+
+新しいBuild Errorは新機能実装で回避せず、BM-004のCompile Blocker Inventoryへ記録して切り分けます。
 
 ## Development Principles
 
