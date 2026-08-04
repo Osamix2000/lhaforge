@@ -165,12 +165,15 @@ Status: **In progress**
 
 `tools/verify-poc-x86-baseline.ps1`によるDebug / Release BuildとPE Architecture確認はPass済み。
 
-現在はPoC 2-Aとして、Original v1.6.7 / Modern x86をModule-local INI付きSandboxへStagingし、外部AppData / ProgramDataを変更せずUI / Configuration readを比較する。
+PoC 2-AのCancel-only UI / Configuration read / Isolation比較はPass済み。
+
+現在はClean Windows VMでConfig Save → Exit → Reloadを比較するSecond passへ進む。HostでVM Kitを生成し、Original / Modernを同じ初期INIから独立して操作する。
 
 詳細:
 
 - [Regression Baseline](regression-baseline.md)
 - [PoC 2-A UI Regression](regression-ui.md)
+- [PoC 2-A Config Save / Reload Regression](regression-config.md)
 
 ---
 

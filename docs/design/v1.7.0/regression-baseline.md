@@ -138,7 +138,7 @@ Status: **Pass**
 
 ### Layer B: UI / Configuration
 
-Status: **In progress (PoC 2-A)**
+Status: **In progress (UI read pass complete / Config save-reload next)**
 
 確認対象:
 
@@ -152,7 +152,7 @@ Status: **In progress (PoC 2-A)**
 
 Source確認の結果、Module-local `LhaForge.ini` / `LFCaldix.ini`を配置したStaged EXEを使用することで、AppData / ProgramData fallbackを避けられる。PoC 2-A first passでは`AskUpdate=0`の隔離Configを使用し、DialogはCancelで閉じる。
 
-手順は[PoC 2-A UI Regression](regression-ui.md)を参照する。
+手順は[PoC 2-A UI Regression](regression-ui.md)を参照する。Cancel-only UI / Isolation passは完了済み。次はClean Windows VMで[Config Save / Reload Regression](regression-config.md)を実施する。
 
 ### Layer C: Archive Operations
 

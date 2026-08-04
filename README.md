@@ -119,6 +119,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Compile Blocker Inventory](docs/design/v1.7.0/compile-blockers.md)
 * [Regression Baseline](docs/design/v1.7.0/regression-baseline.md)
 * [PoC 2-A UI Regression](docs/design/v1.7.0/regression-ui.md)
+* [PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -173,10 +174,10 @@ BM-003 Project Retarget、BM-004 Compile Blocker対応、BM-005 Debug / Release 
 PoC 1のBuild Evidenceは次で再確認できます。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .	oolserify-poc-x86-baseline.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\verify-poc-x86-baseline.ps1
 ```
 
-現在はPoC 2としてOriginal v1.6.7とのBehavior比較へ進んでいます。最初のPoC 2-AではOriginal / Modern x86をModule-local INI付きSandboxへStagingし、外部AppData / ProgramDataを変更せずUI / Configuration readを比較します。手順は[PoC 2-A UI Regression](docs/design/v1.7.0/regression-ui.md)を参照します。Actual x64化はこのBaseline確認後に開始します。
+PoC 2-AのCancel-only UI / Configuration read / Isolation比較はPassしました。現在はClean Windows VMで、Original / Modern x86のConfig Save → Exit → ReloadとSemantic INI内容を比較する段階です。Windows PowerShell 5.1で存在しないRegistry Keyを照会した際の`NativeCommandError`を回避し、Clean VMの「Keyなし」を正常なSnapshot状態として扱うようVM Scriptを修正しています。Hostで`tools/prepare-poc2-config-regression.ps1`からVM Kitを生成し、手順は[PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)に従います。Actual x64化は最低限のArchive RegressionまでBaselineを取得した後に開始します。
 
 ## Development Principles
 

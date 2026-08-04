@@ -1,6 +1,6 @@
 # PoC 2-A UI / Configuration Read Regression
 
-- Status: Ready for manual comparison
+- Status: First pass complete / isolation verified
 - Scope: Original v1.6.7 vs Modern x86
 - Safety level: read-only UI pass first
 - External configuration writes: must remain unchanged
@@ -156,6 +156,6 @@ UNKNOWN
 
 ## 7. Next Step
 
-First passとIsolation VerificationがPassした後、PoC 2-A second passとしてSandbox内だけでConfig Save / Reloadを比較する。
+First passとIsolation Verificationは実機でPassした。Original / Modernとも明確なUI差はなく、外部AppData / ProgramData状態も変更されなかった。
 
-Association / Shell / LFCaldix / External DLL操作はsecond passにも含めず、後続Layerへ分離する。
+Second passはWindows VMへ移し、[Config Save / Reload Regression](regression-config.md)として実施する。Association / Shell / LFCaldix / External DLL操作はsecond passにも含めず、後続Layerへ分離する。
