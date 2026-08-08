@@ -248,9 +248,9 @@ HBRUSH CLogListDialog::OnCtrlColorEdit(HDC,HWND hWnd)
 
 
 //比較関数オブジェクト
-struct COMP{
+struct LOG_LIST_COMP{
 	int nCol;	//比較に使う列
-	COMP(int n):nCol(n){}
+	LOG_LIST_COMP(int n):nCol(n){}
 	bool operator()(const ARCLOG& x, const ARCLOG& y)const{
 		switch(nCol){
 		case 0:	//ファイル名
@@ -291,7 +291,7 @@ LRESULT CLogListDialog::OnSortItem(LPNMHDR pnmh)
 	switch(nCol){
 	case 0:	//ファイル名
 	case 1:	//ステータス
-		std::sort(m_LogArray.begin(),m_LogArray.end(),COMP(nCol));
+		std::sort(m_LogArray.begin(),m_LogArray.end(),LOG_LIST_COMP(nCol));
 		break;
 	default:
 		ASSERT(!"This code cannot be run");

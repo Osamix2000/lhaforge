@@ -156,7 +156,7 @@ Source確認の結果、Module-local `LhaForge.ini` / `LFCaldix.ini`を配置し
 
 ### Layer C: Archive Operations
 
-Status: **Pending**
+Status: **PoC 2-B Complete / MATCH for ASCII ZIP basic operations**
 
 確認対象:
 
@@ -168,7 +168,13 @@ Status: **Pending**
 - CP932 compatibility
 - error path
 
-External Archive DLLの有無によって結果が変わるため、使用DLL / Version / Fixtureを固定してから比較する。
+External Archive DLLの有無によって結果が変わるため、使用DLL / Version / Fixtureを固定して比較する。
+
+PoC 2-Bでは`7-ZIP32.DLL` 9.22.0.2のx86 PE / SHA-256をHost準備時とVM初期化時に確認し、同一DLL Byte列をOriginal / ModernのEXE直下へ配置した。List / Test / Extract / Compress / Re-extractを比較し、最終Classificationは`MATCH`。
+
+途中でModern Release Listのみ`0xC0000005` CrashするRegressionを検出し、`FileListModel.cpp`と`LogListDialog.cpp`に存在した異なるGlobal `struct COMP`定義のODR違反を特定・修正した。修正後にFresh initializationから全操作を再実行し、Original / ModernのExtract / Roundtrip / ZIP semantics / external state / manual UI checksがすべて一致した。
+
+Japanese filename / path、CP932 / UTF-8、Response File、Compound Archive等はPoC 2-Cへ分離する。具体的Evidenceは[PoC 2-B Archive Basic Operation Regression](regression-archive.md)を参照する。
 
 ### Layer D: Windows Integration
 

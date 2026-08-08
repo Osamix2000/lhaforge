@@ -175,15 +175,20 @@ PoC 2-AはComplete。
 * External AppData / ProgramData: unchanged
 * Association / Shell Registry: unchanged
 
-次はPoC 2-Bとして、固定ZIP Fixtureと固定Archive DLLによるList / Test / Extract / Compress Regressionへ進む。
+PoC 2-BはComplete。
+
+固定ZIP Fixtureと同一SHA-256のx86 `7-ZIP32.DLL`をOriginal / Modernへ固定配置し、List / Test / Extract / Compress / Re-extractを比較した。最初のModern Listで`0xC0000005` Crashを検出し、WER Dump / PDB / Source archaeologyからGlobal namespaceにある2種類の`struct COMP`によるODR違反を特定した。Comparator typeを固有化する最小修正後、同一条件で全操作を再実行し、最終Classificationは`MATCH`となった。
 
 PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をADR-0006と`zste-format.md`へ記録した。ZSTE実装自体はPoC 2-Bへ混在させず、Regression Baseline成立後のBuilt-in Backend実装段階で行う。
+
+次はPoC 2-CとしてJapanese Filename / CP932 / UTF-8 / Response File / Compound Archive等のEncoding / Path compatibilityを検証する。
 
 詳細:
 
 - [Regression Baseline](regression-baseline.md)
 - [PoC 2-A UI Regression](regression-ui.md)
 - [PoC 2-A Config Save / Reload Regression](regression-config.md)
+- [PoC 2-B Archive Basic Operation Regression](regression-archive.md)
 
 ---
 

@@ -238,7 +238,7 @@ void CFileListModel::SetSortMode(bool bSortDescending)
 }
 
 //比較関数オブジェクト
-struct COMP{
+struct FILELIST_ENTRY_COMP{
 	FILEINFO_TYPE Type;
 	bool bReversed;
 	bool operator()(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const{
@@ -345,7 +345,7 @@ void CFileListModel::SortCurrentEntries()
 		m_SortedChildren=m_lpCurrentNode->childrenArray;
 
 		if(Type<FILEINFO_INVALID||Type>FILEINFO_LAST_ITEM)return;
-		COMP Comp;
+		FILELIST_ENTRY_COMP Comp;
 		Comp.Type=Type;
 		Comp.bReversed = !m_bSortDescending;
 		std::sort(m_SortedChildren.begin(),m_SortedChildren.end(),Comp);
