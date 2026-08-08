@@ -1,6 +1,6 @@
 # PoC 2-A Config Save / Reload Regression
 
-- Status: VM preflight in progress
+- Status: Complete / MATCH
 - Scope: Original v1.6.7 vs Modern x86
 - Test environment: clean Windows VM
 - User context: non-elevated
@@ -177,6 +177,39 @@ Classificationは`MATCH`を期待する。
 
 ---
 
-## 8. Next step
+## 8. Result
 
-Pass後はPoC 2-Bとして、固定ZIP Fixtureと固定Archive DLLを用いたList / Test / Extract / Compress Regressionへ進む。
+Clean Windows VMでOriginal v1.6.7とModern x86を同じ初期条件から独立して操作し、2026-08-08に次を確認した。
+
+```text
+Original save                      PASS
+Original reload                    PASS
+Modern save                        PASS
+Modern reload                      PASS
+Selected five values               PASS
+Semantic INI contents              MATCH
+LFCaldix.ini                       MATCH
+INI encoding                       UTF-16LE BOM (both)
+External AppData / ProgramData     unchanged
+Association / Shell registry       unchanged
+Classification                     MATCH
+```
+
+`compare-config-results.ps1`最終結果:
+
+```text
+[OK] Expected saved values passed for Original and Modern.
+[OK] Original and Modern semantic INI contents match.
+[OK] Original and Modern LFCaldix.ini hashes match.
+[OK] External AppData, ProgramData, and registry state remained unchanged.
+[POC2-CONFIG] Classification: MATCH
+[POC2-CONFIG] PoC 2-A config save/reload regression passed.
+```
+
+VM Snapshotとして`PoC2-A Config Regression Passed`を取得済み。
+
+---
+
+## 9. Next step
+
+PoC 2-Bとして、固定ZIP Fixtureと固定Archive DLLを用いたList / Test / Extract / Compress Regressionへ進む。

@@ -6,6 +6,7 @@
 
   * ADR-0002: v1系外部DLL互換を維持する
   * ADR-0003: x64本体とLegacyHostを採用する
+  * ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する
 
 ## Context
 
@@ -112,9 +113,9 @@ Built-in Backendは主としてFallback、基本機能保証、安全な代替�
 
 圧縮・展開に対応する。
 
-### Zstandard
+### Zstandard / ZSTE
 
-対象:
+標準Zstandard対象:
 
 ```text
 .zst
@@ -122,6 +123,15 @@ Built-in Backendは主としてFallback、基本機能保証、安全な代替�
 ```
 
 圧縮・展開に対応する。
+
+Authenticated Encryption対象:
+
+```text
+.zste
+.tar.zste
+```
+
+ZSTEは公開・Vendor-neutralなFormatとして設計し、LhaForge Built-in BackendをReference Implementationとする。Cryptographic / Wire Format方針はADR-0006および`docs/design/v1.7.0/zste-format.md`で定義する。
 
 ### RAR / RAR5
 

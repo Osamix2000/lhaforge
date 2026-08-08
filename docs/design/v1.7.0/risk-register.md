@@ -44,6 +44,10 @@ Low
 | R-023 | Medium | LegacyHost IPCがchatty | x86 backend性能低下 | batching、session reuse、measure IPC count |
 | R-024 | Medium | UI modernizationでv1操作性を失う | User experience regression | UI変更を後期Phase、regression screenshots / behavior |
 | R-025 | Medium | Minimum Windows Versionを早期に決めすぎる | Modern API利用制約 /不要な互換負担 | Build / API audit後にDecision |
+| R-026 | Critical | ZSTE Parser / KDF / authenticated stream実装不備 | Plaintext漏洩、改ざん見逃し、Data loss | Public specification/source、vetted crypto libraries、no custom primitive、test vectors、fuzz、independent decoder、security review |
+| R-027 | High | ZSTE HeaderのKDF / length値によるResource Exhaustion | Memory / CPU DoS、allocation failure | pre-auth hard limits、overflow check、bounded record/header、policy limits |
+| R-028 | High | Weak passwordに対するOffline Guessing | ZSTE内容の復号 | Argon2id v1.3、強いdefault KDF cost、password UX、KDF parameter persistence |
+| R-029 | High | ZSTE Wire Formatを早期FreezeしてInterop欠陥を固定 | 第三者互換不能、将来Format break | pre-wire-freeze status、canonical vectors、second implementation、RC前extension/MIME再確認 |
 
 ---
 
@@ -54,11 +58,12 @@ Low
 ```text
 R-006 Archive extraction security
 R-009 Lifecycle data loss
+R-026 ZSTE cryptographic / parser correctness
 ```
 
 である。
 
-この2つは「互換性のためにRiskを許容する」対象にしない。
+この3つは「互換性のためにRiskを許容する」対象にしない。
 
 Legacy BackendがSecurity Contractを満たせない場合、そのOperationではBackendを利用しない判断を許容する。
 
@@ -96,6 +101,10 @@ R-018
 R-021
 R-022
 R-023
+R-026
+R-027
+R-028
+R-029
 ```
 
 Support Format数を増やす前に、少数FamilyでCommon Backend Modelが成立することを優先する。

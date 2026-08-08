@@ -18,6 +18,7 @@ Related documents:
 - `build-modernization.md`
 - `development-environment.md`
 - `dependencies.md`
+- `zste-format.md`
 
 ---
 
@@ -165,9 +166,18 @@ Status: **In progress**
 
 `tools/verify-poc-x86-baseline.ps1`によるDebug / Release BuildとPE Architecture確認はPass済み。
 
-PoC 2-AのCancel-only UI / Configuration read / Isolation比較はPass済み。
+PoC 2-AはComplete。
 
-現在はClean Windows VMでConfig Save → Exit → Reloadを比較するSecond passへ進む。HostでVM Kitを生成し、Original / Modernを同じ初期INIから独立して操作する。
+* Cancel-only UI / Configuration read / Isolation: PASS
+* Config Save → Exit → Reload: PASS
+* Original / Modern Semantic INI: MATCH
+* `LFCaldix.ini`: MATCH
+* External AppData / ProgramData: unchanged
+* Association / Shell Registry: unchanged
+
+次はPoC 2-Bとして、固定ZIP Fixtureと固定Archive DLLによるList / Test / Extract / Compress Regressionへ進む。
+
+PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をADR-0006と`zste-format.md`へ記録した。ZSTE実装自体はPoC 2-Bへ混在させず、Regression Baseline成立後のBuilt-in Backend実装段階で行う。
 
 詳細:
 

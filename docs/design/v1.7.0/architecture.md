@@ -13,6 +13,7 @@ Related ADR:
 * ADR-0003: x64本体とLegacyHostを採用する
 * ADR-0004: Built-in BackendをFallbackとして持つ
 * ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する
+* ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する
 
 Related design documents:
 
@@ -31,6 +32,7 @@ Related design documents:
 * `poc-plan.md`
 * `risk-register.md`
 * `build-modernization.md`
+* `zste-format.md`
 
 ---
 
@@ -357,14 +359,15 @@ Archive Data本体をIPCで転送せず、LegacyHost / DLLがFilesystemへ直接
 * bzip2
 * XZ
 * LZMA
-* Zstandard
+* Zstandard (`.zst` / `.tar.zst`)
+* ZSTE (`.zste` / `.tar.zste`) のAuthenticated Encryption
 * RAR / RAR5の読み取り・展開
 
 Built-in BackendはExternal DLLを置き換えるものではなくFallbackである。
 
-Archive Libraryの具体的な採用は別途評価する。
+Archive Libraryの具体的な採用は別途評価する。Zstandardはlibzstdを前提候補とし、ZSTEはArgon2id v1.3 KDFとXChaCha20-Poly1305 secretstream-compatible authenticated streamを設計Profileとして採用する。KDF実装は明示的な`m` / `t` / `p`を扱えるLibrary、Authenticated Encryption側はlibsodiumを第一候補とし、Version pin / Hash / Licenseは実装開始時にDependency Manifestへ固定する。
 
-libarchiveを中心とした構成を有力候補とするが、本ArchitectureではLibraryを固定しない。
+libarchiveを中心とした構成は他Format向けの有力候補とするが、本Architectureでは全Built-in Formatを単一Libraryへ固定しない。
 
 ---
 

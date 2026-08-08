@@ -282,7 +282,55 @@ Secret Fileの内容はLogへ出力しない。
 
 File名自体も機密になり得るため、通常Levelで大量のFull Pathを出力しない。
 
-## 15. Open Items
+## 15. Zstandard / ZSTE Compression Profiles
+
+Zstandard Compressionは`.zst`と`.zste`で同じProfile Modelを利用する。
+
+DefaultではProfileを共有する。
+
+```text
+.zst / .tar.zst
+       ↑
+  shared profile
+       ↓
+.zste / .tar.zste
+```
+
+Default Profile:
+
+```text
+Compression level: 22 (Ultra)
+Thread policy: Auto / Performance
+Maximum compression (--max equivalent): OFF
+```
+
+`Auto / Performance`は最大Thread数を無条件に使用するPolicyではない。
+
+> Compression Level 22を維持した上で、利用可能Hardwareを使って実際の処理時間を短縮する
+
+ことを目的とする。
+
+Zstd CLIの`--max`はLevel 23ではなくAdvanced Parameter Presetである。Advanced Optionとして明示的に選択可能にするがDefaultでは無効とし、UIには大量のMemoryと長い処理時間を使用し得ること、および生成Frameによっては展開側にも大きなMemory / Window Limitが必要になる旨の注意書きを表示する。確認Dialogは必須としない。
+
+UserがProfile共有を解除した場合、`.zst`系と`.zste`系でLevel / Thread Policy / Maximum Compression等を独立設定できる。
+
+`.zste`は単一Data Stream、`.tar.zste`はTAR StreamをZstd圧縮してからAuthenticated Encryptionする。
+
+```text
+Single file:
+  input -> Zstd -> ZSTE encryption -> .zste
+
+Multiple files / directory:
+  input set -> TAR -> Zstd -> ZSTE encryption -> .tar.zste
+```
+
+DecodeにCompression LevelやThread数は不要であるため、これらはCreate-side ProfileでありZSTE必須Header Metadataとはしない。
+
+ZSTEのWire Format、KDF、Authentication、Output Commit Policyは`zste-format.md`およびADR-0006に従う。
+
+---
+
+## 16. Open Items
 
 * Rule Syntaxの最終仕様
 * Default Rule Set

@@ -3,7 +3,8 @@
 - Status: Draft
 - Target: LhaForge v1.7.x
 - Baseline: LhaForge v1.6.7
-- Current scope: Build-time WTL dependency
+- Current implemented scope: Build-time WTL dependency
+- Planned scope: Built-in Archive / ZSTE runtime dependencies
 
 ## 1. Purpose
 
@@ -193,9 +194,81 @@ WTL 10.xへの更新はBM-002に含めない。
 
 PoC 1 / Regression Baseline成立後に、独立CommitでCompile、UI Behavior、DPI、Message Map等を比較する。
 
-## 11. Open items
+## 11. Planned Built-in Backend / ZSTE dependencies
+
+PoC 1ではWTLだけを実際にRestore / Pinしている。Zstandard / ZSTE実装時には、同じManifest / Hash Verification方針へ次のRuntime Dependencyを追加する方向とする。
+
+### Zstandard
+
+Candidate / design choice:
+
+```text
+facebook/zstd (libzstd)
+License: BSD OR GPLv2 dual license
+LhaForge usage direction: BSD terms
+```
+
+Zstd Format自体はstable public formatであり、`.zst` / `.tar.zst`の標準互換性を維持する。
+
+Versionは実装開始時にPinし、Archive、SHA-256、License notice、Build flags、Multi-thread supportをManifestへ記録する。
+
+`--max`相当機能はCLIに存在するAdvanced Parameter Presetであり、Library API上の「Level 23」として扱わない。Pinned Version更新時にPreset behaviorをReviewする。
+
+### Argon2id implementation
+
+Candidate / design choice:
+
+```text
+P-H-C/phc-winner-argon2 (official reference implementation)
+License: CC0 OR Apache-2.0 dual license
+Purpose:
+  Argon2id v1.3 password-based key derivation
+  explicit m / t / p parameter control
+```
+
+ZSTE v1はArgon2id v1.3をWire-levelで明示し、Memory Cost `m`、Time Cost `t`、Parallelism `p`をLibrary固有API名へ依存せず定義する。
+
+libsodium high-level `crypto_pwhash(..., ALG_ARGON2ID13)`は現行実装で`p = 1`へ固定されるため、ZSTE v1のVendor-neutral KDF Parameterをその制約へ早期固定しない。Reference KDF LibraryはWire Freeze前のBenchmark / Security / License Reviewで最終選定する。
+
+### libsodium
+
+Candidate / design choice:
+
+```text
+jedisct1/libsodium
+License: ISC
+Purpose:
+  XChaCha20-Poly1305 secretstream-compatible encryption/decryption
+  secure random
+  secure memory helpers
+```
+
+ZSTE Format Specificationそのものをlibsodium API名だけで定義しない。Secretstream-compatible Record LayerのExact RuleとTest Vectorを公開し、他Softwareがlibsodium利用または独立実装のどちらでも互換Reader / Writerを作れることを目標とする。
+
+### Dependency gate
+
+実際にSource / Binaryを取り込むCommitでは、最低限次を同時に行う。
+
+1. Version pin
+2. Official upstream source URL
+3. SHA-256 pin
+4. License / notice verification
+5. x64 Windows build reproduction
+6. Compiler mitigation確認
+7. Upstream test suite / smoke test
+8. Multi-thread / crypto feature availability check
+9. Dependency update policy
+10. SBOM / third-party noticeへの掲載方式
+
+現段階ではVersionをRepository ManifestへPinしない。PoC 2-Bはv1.6.7 Regressionが目的であり、Built-in Zstd / ZSTE dependency導入は後段で行う。
+
+---
+
+## 12. Open items
 
 - Primary WTL 9.1.5321とCompatibility WTL 9.0.4140のBuild差分
 - Public Release時に必要なWTL License / Noticeの最終確認
 - CIでDependency Cacheをどう扱うか
-- 将来のBuilt-in Backend dependencyを同じManifest方式へ統合するか
+- Built-in Backend dependencyをWTLと同じManifest思想へ統合する具体的なFile Layout
+- libzstd / Argon2 implementation / libsodiumの初回Pinned VersionとSHA-256
+- Static / dynamic link方針とRelease Notice

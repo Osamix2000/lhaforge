@@ -220,6 +220,9 @@ Test候補:
 * Huge Entry Count
 * Extreme Compression Ratio
 * Corrupt Header / Truncated Archive
+* ZSTE invalid / oversized KDF parameters
+* ZSTE wrong password / modified authenticated header
+* ZSTE record removal / reorder / duplicate / truncation
 * Malformed Unicode
 * DLL architecture mismatch
 * Invalid IPC payload
@@ -227,7 +230,80 @@ Test候補:
 
 将来的にParser / Security BoundaryにFuzz Testingを導入できる構造を検討する。
 
-## 16. Open Items
+## 16. ZSTE Cryptographic Security
+
+ZSTE v1はFormat / Source Codeの秘匿をSecurity Boundaryとしない。
+
+Publicにするもの:
+
+* Format Specification
+* Encryption Source
+* Decryption Source
+* Parser / Writer Source
+* Test Vectors
+* Synthetic Compatibility Fixtures
+
+Secretとして扱うもの:
+
+* User Password
+* Derived Encryption Key
+* Release Signing Private Key
+* Real Credential / Token
+
+Password-based EncryptionではArchive Fileを入手したAttack者がOffline Password Guessingを行えることを前提とする。Source Code非公開化でこれを防ごうとせず、Argon2id v1.3のMemory / Time Cost、Password Strength、Secure Key Handlingで対策する。
+
+Password KDFはArgon2id v1.3を明示し、Wire Specificationでは`m` / `t` / `p`をLibrary固有APIから独立して定義する。libsodium high-level `crypto_pwhash()`の現行`p = 1`制約へFormatを早期固定しない。Authenticated Encryption / secure random / secure memory側はlibsodiumを第一候補とする。`ALG_DEFAULT`のようにLibrary Versionで意味が変わる値をZSTE v1のWire Requirementには使用しない。
+
+Authenticated EncryptionはXChaCha20-Poly1305 secretstream-compatible constructionを用い、次を検出対象とする。
+
+* Ciphertext modification
+* Record truncation
+* Record removal
+* Record reordering
+* Record duplication
+* Premature EOF
+* Missing final tag
+* Authenticated Header modification
+
+### Header pre-authentication validation
+
+Header AuthenticationにはPasswordからDerived Keyを作る必要がある。そのためAuthentication前にUntrusted HeaderをParseする段階が存在する。
+
+この段階では最低限、
+
+* Fixed prefix size
+* Header maximum length
+* Version range
+* Integer overflow
+* KDF memory hard limit
+* KDF time cost hard limit
+* KDF parallelism / lanes hard limit
+* Record length hard limit
+* Unknown mandatory algorithm / field
+
+を検査し、危険な値ではArgon2idや巨大Allocationを開始しない。
+
+### Password / key memory
+
+Plaintext PasswordとDerived Keyは必要以上に保持しない。
+
+Reference Implementationでは`libsodium`のSecure Memory機能を利用できる範囲で使用し、使用後のZeroizationを必須とする。Memory LockはOS Limit等で失敗し得るため、失敗時のPolicyを明示し、Lock成功だけにSecurityを依存させない。
+
+Password / Derived KeyをLog、Crash message、Telemetryへ出力しない。
+
+### Output commit
+
+Wrong Password / Authentication failure / Corruption時に不完全なPlaintextを正規Destinationへ残さない。
+
+`.zste`はTemporary Outputへ書き、Final Authentication成功後にCommitする。
+
+`.tar.zste`は認証前に最終DestinationへPartial Extractしない。Temporary TARまたはIsolated staging directory方式をPoCで決定する。
+
+詳細は`zste-format.md`およびADR-0006を参照する。
+
+---
+
+## 17. Open Items
 
 * Windows Path Canonicalization APIの最終方式
 * Reparse Point / TOCTOU防御の実装詳細
@@ -235,4 +311,6 @@ Test候補:
 * External DLL Trust / Warning Policy
 * Update Manifest形式
 * Fuzzing対象
+* ZSTE KDF `m` / `t` / `p` default / reader hard resource limits
+* ZSTE Wire Format independent implementation review
 * Minimum Windows Versionに応じたMitigation設定

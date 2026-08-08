@@ -134,11 +134,58 @@ v1.6.7実動環境を可能な範囲でReferenceとして比較する。
 * IPC message count / size
 * UI progress update count
 
-## 13. Open Items
+## 13. Zstandard Performance Profile
+
+ZstandardのLhaForge既定値はCompression Level 22 (Ultra)とする。
+
+```text
+Level: 22
+Thread policy: Auto / Performance
+--max equivalent: OFF
+```
+
+Zstd v1.5.7のCLIでは`--ultra`が20以上のLevelを解禁し最大22まで利用できる。`--max`はLevel 23ではなく、最大Compressionを狙ってAdvanced Parameterを変更する別Presetである。
+
+`Auto / Performance`はWorker数を最大値へ固定するのではなく、Level 22を維持した上でWall-clock timeを短縮することを目的とする。
+
+Zstd LibraryのMulti-thread CompressionではWorker数を増やすとMemory Usageが増加する。またJob overlapはCompression RatioとSpeedに影響する。そのため次をBenchmarkしてDefault Heuristicを決定する。
+
+* Physical Core基準
+* Logical Processor基準
+* Input Size別Worker数
+* Small file / Large stream
+* Memory量別上限
+* SSD / slower storage
+* Zstd Level 22でのJob overlap
+* `.zst` vs `.zste` Pipeline overhead
+
+CLIの`-T0`相当はPhysical Core検出をBaseline候補とするが、LhaForge Built-in BackendではRuntimeのCPU / Memory / Input条件を考慮して最終Worker数を決める。
+
+Compression Level自体を動的に変更する`--adapt`は、Level 22固定というDefault Policyには使用しない。
+
+### Maximum Compression
+
+`--max`相当はAdvanced Optionとする。
+
+* Default OFF
+* 64-bit Built-in Backendを基本対象
+* Large memory / long runtime warningをUIへ表示
+* Confirmation dialogは要求しない
+* Pinned Zstd Version更新時にBenchmark / Regressionする
+
+Zstd v1.5.7 Release Noteでは`enwik9`の例で`--max`が`--ultra -22`より高いCompression Ratioを得る一方、Time / Memory Costが大幅に増えることが示されている。
+
+`--max`は大きなWindow等を選択し得るため、圧縮時だけでなく展開時のMemory Requirementも増える可能性がある。生成Frameは標準Zstandardだが、Decoder側のResource Policy / Memory LimitによってはDefault設定で拒否され得るため、Compatibility / Resource Budget Testへ含める。
+
+---
+
+## 14. Open Items
 
 * Benchmark dataset
 * Default concurrency
 * Capability Cache invalidation方式
 * Built-in Backend libraryごとのThreading Policy
+* Zstd Auto / Performance Worker heuristic
+* Zstd `--max`相当PresetのPinned Version追従方式
 * File Enumeration API
 * Long path handlingによるPerformance影響

@@ -20,6 +20,7 @@ Related design documents:
 * `security.md`
 * `performance.md`
 * `signing.md`
+* `zste-format.md`
 
 ---
 
@@ -280,6 +281,9 @@ Delete
 PasswordRead
 PasswordWrite
 Encryption
+AuthenticatedEncryption
+CompressionMethod
+CompressionProfile
 MultiVolumeRead
 MultiVolumeWrite
 ArchiveComment
@@ -317,8 +321,22 @@ Encryption
 ├─ ZipCrypto
 ├─ AES128
 ├─ AES192
-└─ AES256
+├─ AES256
+└─ ZSTE-v1
+
+CompressionMethod
+├─ Deflate
+├─ LZMA
+└─ Zstandard
+
+ZstandardProfile
+├─ CompressionLevel
+├─ MultiThread
+├─ MaximumCompressionPreset
+└─ FrameChecksum
 ```
+
+`PasswordRead = true`だけでは、ZSTE v1のAuthenticated Encryptionを安全に扱えることを意味しない。Format / Encryption Construction / Argon2id `m` / `t` / `p` / Streaming Authenticationまで含むDetail Capabilityを持たせる。
 
 ---
 
@@ -392,6 +410,18 @@ Extensions:
 
 Logical name:
   source.tar.gz → source
+
+ZSTE
+Extensions:
+  .zste
+Content signature:
+  ZSTE wire magic (exact bytes are frozen by the ZSTE specification)
+
+TAR.ZSTE
+Compound extension:
+  .tar.zste
+Logical name:
+  package.tar.zste → package
 ```
 
 Format Registryは、
@@ -1316,6 +1346,8 @@ v1.6.7で対応していたという理由だけで、未検証DLLをv1.7.0で`S
 * 共通Backend Interfaceの具体的なC++型
 * Individual DLL FamilyのAdapter仕様
 * Built-in Library最終選定
+* Zstd / Argon2 implementation / libsodium Version pinningとUpdate Policy
+* ZSTE v1 Wire Format Freeze / Independent decoder test
 * Built-in 7z Create方式
 * Backend Preference UI
 * Signature / Trust Advanced Policy

@@ -28,6 +28,8 @@ LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をMode
 * LhaForge本体のx64化
 * x86専用Legacy DLLを利用するLegacyHost
 * Built-in Archive BackendによるFallback
+* Zstandard (`.zst` / `.tar.zst`) のBuilt-in圧縮・展開対応
+* 公開仕様のZSTE (`.zste` / `.tar.zste`) によるAuthenticated Encryption対応
 * Legacy Format対応の維持
 * Unicode処理の改善
 * DLL Load / Archive Path Securityの強化
@@ -112,6 +114,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
 * [Performance Design](docs/design/v1.7.0/performance.md)
+* [ZSTE v1 Format Design](docs/design/v1.7.0/zste-format.md)
 * [Design Review](docs/design/v1.7.0/design-review.md)
 * [PoC Plan](docs/design/v1.7.0/poc-plan.md)
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
@@ -130,6 +133,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [ADR-0003: x64本体とLegacyHostを採用する](docs/adr/0003-x64-main-and-legacyhost.md)
 * [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-built-in-backend-fallback.md)
 * [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-signing-capable-release-and-least-privilege.md)
+* [ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する](docs/adr/0006-public-zste-format-and-crypto.md)
 
 ## Development Status
 
@@ -138,7 +142,7 @@ PoC 1のModern x86 Buildは完了し、現在はPoC 2のRegression Baseline確�
 ```text
 Legacy Baseline              Done
 Source Verification          Done
-Architecture Decisions       In progress
+Architecture Decisions       In progress (ADR-0001 - 0006)
 Ownership Design             Draft
 Overall Architecture         Draft
 Archive Operation Design     Draft
@@ -155,7 +159,7 @@ Design Review                Draft
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          PoC 1 complete
-Regression Baseline          PoC 2 in progress
+Regression Baseline          PoC 2-A complete / PoC 2-B next
 Development Environment      Verified
 Dependency Management        BM-002 verified
 x64 Migration                Not started
@@ -177,7 +181,11 @@ PoC 1のBuild Evidenceは次で再確認できます。
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\verify-poc-x86-baseline.ps1
 ```
 
-PoC 2-AのCancel-only UI / Configuration read / Isolation比較はPassしました。現在はClean Windows VMで、Original / Modern x86のConfig Save → Exit → ReloadとSemantic INI内容を比較する段階です。Windows PowerShell 5.1で存在しないRegistry Keyを照会した際の`NativeCommandError`を回避し、Clean VMの「Keyなし」を正常なSnapshot状態として扱うようVM Scriptを修正しています。Hostで`tools/prepare-poc2-config-regression.ps1`からVM Kitを生成し、手順は[PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)に従います。Actual x64化は最低限のArchive RegressionまでBaselineを取得した後に開始します。
+PoC 2-Aは完了しました。Cancel-only UI / Configuration read / Isolation比較に加え、Clean Windows VMでOriginal v1.6.7とModern x86のConfig Save → Exit → Reloadを比較し、指定設定値、Semantic INI内容、`LFCaldix.ini`、AppData / ProgramData、Association / Shell Registryの比較が`MATCH`となりました。詳細は[PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)を参照してください。
+
+PoC 2-Bでは固定ZIP Fixtureと固定Archive DLLを用いたList / Test / Extract / Compress Regressionへ進みます。Actual x64化は最低限のArchive RegressionまでBaselineを取得した後に開始します。
+
+Zstandardは`.zst` / `.tar.zst`の標準互換を維持しつつ、Password-based Authenticated Encryption用の公開Formatとして`.zste` / `.tar.zste`を設計します。ZSTEはLhaForge専用の非公開Formatにはせず、Format Specification、Encryption / Decryption Source、Test Vectorを公開し、第三者Softwareが独立実装できることを要件とします。Cryptographic profileはArgon2id v1.3 + XChaCha20-Poly1305 secretstream-compatible constructionを基本方針とし、Argon2idの`m` / `t` / `p`、Record Framing等のWire Detailは実装・Fuzz・Cross-implementation Testを経てFreezeします。Zstdの既定ProfileはUltra Level 22 + Auto / Performance threading、`--max`相当はDefault OFFのAdvanced Optionとします。
 
 ## Development Principles
 
