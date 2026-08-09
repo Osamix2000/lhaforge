@@ -308,14 +308,27 @@ Archive Entry NameはUser File Contentsとは別のMetadataであり、安全な
 
 ```text
 ArchiveEntryName
-├─ Decoded Unicode Name
 ├─ Raw Name Bytes           (Backend / Formatが取得可能な場合)
+├─ Decoded Unicode Name
 ├─ Encoding Source
 ├─ Encoding Confidence
+├─ Decode Policy
+├─ User Override            optional
 └─ Validation State
 ```
 
-Built-in Backend / AdapterがRaw Nameを取得できる場合は、Decode結果だけでなく元情報を保持できる構造を検討する。
+Built-in Backend / AdapterがRaw Nameを取得できる場合は、Decode結果だけでなく元情報を保持することをv1.7.xの重要要件とする。
+
+Raw Name Bytesは、次の用途で利用する。
+
+- Auto Decode
+- Manual Encoding Override
+- Re-decode
+- Ambiguous Encoding比較
+- Diagnostic
+- Cross-platform Compatibility Test
+
+Backend APIがUnicode Stringしか返さずRaw Nameを取得できない場合は、その制約をCapabilityとして明示する。取得不能なRaw byte列を推測で再生成しない。
 
 これにより、Encoding判定の再試行や診断が必要な場合に、既にLossy変換されたStringだけへ依存しなくて済む。
 
@@ -361,9 +374,30 @@ Format Policy、User Setting、Archive由来情報を組み合わせる。
 
 ### 10.2 Ambiguous encoding
 
-複数Encodingで有効にDecodeでき、正しいNameを一意に決められない場合は、必要に応じてCompatibility PolicyまたはUser選択を利用する。
+複数Encodingで有効にDecodeでき、正しいNameを一意に決められない場合は、Compatibility PolicyとUser Overrideを利用できるようにする。
 
-変換結果を確定できないのに、別のFile Nameとして黙って展開しない。
+通常のAuto ModeではOperationを必要以上に停止させず、Format / Backend / Legacy Contextから最も妥当なFallbackを選択する。ただし判定元、推定Encoding、Confidenceを内部的に保持し、Userが明示的に変更できるようにする。
+
+現代的なUTF-8 ContextではUTF-8を優先し、Legacy Japanese ZIP等でCP932のContext Evidenceがある場合はCP932 / Windows-31Jを優先候補にできる。Format非依存で常に一方へ固定するFallbackにはしない。
+
+### 10.3 Cross-platform filename compatibility
+
+Windows / macOS等のPlatform間でArchiveを交換するCaseを正式なCompatibility対象とする。
+
+特に次を考慮する。
+
+- UTF-8 Archive Entry Name
+- Legacy CP932 / Windows-31J Entry Name
+- NFC / NFD
+- Combining Character
+- Emoji / Supplementary Plane Character
+- Format-specific Unicode metadata
+- Backendが既にDecodeしたUnicode Name
+- Raw Name Bytesが取得可能なCase
+
+Actual File Nameを見た目だけの都合でNormalizationしない方針はSection 12に従う。
+
+macOS実機がない場合でもDeterministic FixtureでNFC / NFD等をRegression Testし、実macOS Toolが生成したArchiveは利用可能になった時点でAdditional Evidenceとして追加する。
 
 ---
 
@@ -699,24 +733,102 @@ Diagnostic LogにはEncoding種類、Backend ID、Entry Index等を記録でき�
 
 ---
 
-## 25. User-facing Compatibility Options
+## 25. User-facing Filename Encoding Policy
 
-必要な場合、Advanced OptionとしてArchive File Name Encoding Policyを提供できる設計とする。
+Archive Entryのファイル・フォルダー名について、Auto DetectionをDefaultとしつつUserが明示的にEncodingをOverrideできる機能をv1.7.xの正式方針とする。
 
-候補:
+この機能はArchive内のText File内容を変換するものではない。対象はArchive Entry Metadataとしてのファイル・フォルダー名である。
+
+### 25.1 Shared decode policy
+
+閲覧、解凍前Preview、実際の解凍で別々のDecode実装を持たない。
+
+```text
+Raw / Backend Metadata
+        ↓
+Filename Decode Policy
+        ↓
+Unicode Entry Name Model
+        ├─ File List Window
+        ├─ Extraction Preview
+        └─ Extraction Operation
+```
+
+File List WindowでUserがEncoding Overrideを行ったArchiveを、そのWindowから解凍する場合は同じDecode Policyを引き継げる設計とする。
+
+### 25.2 Extraction UI wording
+
+解凍Dialogでは次のUser-facing文言を基本とする。
+
+```text
+解凍時のファイル・フォルダー名の文字コード
+[ 自動判定（推奨） ]
+
+解凍後のファイル・フォルダー名が文字化けする場合に変更してください。
+```
+
+Modern Extraction UIではPreview Buttonを提供する方向とし、Preview Window内でもEncodingを切り替えてEntry Nameを再表示できるようにする。
+
+Previewは通常の解凍操作に必須としない。
+
+### 25.3 File List Window wording
+
+Archiveの中身を見るWindowでは次を基本とする。
+
+```text
+ファイル・フォルダー名の文字コード
+[ 自動判定（推奨） ]
+```
+
+Toolbar / Navigation area等からその場で変更し、可能なBackendではRaw Name Bytesから再Decodeして一覧を更新する。
+
+### 25.4 Encoding choices
+
+初期候補:
 
 ```text
 Auto / Format default
 UTF-8
-CP932
+CP932 / Windows-31J
 Backend default
+Format-specific option (when supported)
 ```
 
-ただし設定数を増やし過ぎない。
+通常Userは`自動判定（推奨）`を利用する。
 
-通常UserはAutoで安全に利用でき、Legacy ArchiveでのみOverrideする方向とする。
+Auto ModeはFormat Metadata、Backend Unicode Result、Raw Metadata、UTF-8妥当性、Legacy Japanese Context、Backend Default等を組み合わせる。
 
-Override設定はArchive ContentsのText Encoding変換機能ではなく、Archive Entry MetadataのDecode Policyであることを明確にする。
+### 25.5 Override capability
+
+Format上Encodingが確定しているCaseでは通常Manual Overrideを無効または非表示にできる。
+
+一方、Troubleshooting用途として、
+
+```text
+文字コードが確定している場合でも手動変更を許可する
+```
+
+Advanced OptionをDefault Offで提供する方向とする。
+
+Raw Name Bytesを取得できないBackend等、実際に再DecodeできないCaseではOverride可能と偽って表示しない。Backend / Format Capabilityに応じて理由を示す。
+
+### 25.6 Security after override
+
+User Override後もDecode結果をそのままFilesystem Pathとして信用しない。
+
+```text
+Raw metadata
+    ↓
+Selected decode policy
+    ↓
+Unicode path
+    ↓
+Security / Collision validation
+    ↓
+Extraction planning
+```
+
+Encoding変更によって`../`、Drive Path、Reserved Name、Collision等が現れた場合は通常のSecurity Policyを適用する。
 
 ---
 

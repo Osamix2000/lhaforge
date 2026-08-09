@@ -48,6 +48,10 @@ Low
 | R-027 | High | ZSTE HeaderのKDF / length値によるResource Exhaustion | Memory / CPU DoS、allocation failure | pre-auth hard limits、overflow check、bounded record/header、policy limits |
 | R-028 | High | Weak passwordに対するOffline Guessing | ZSTE内容の復号 | Argon2id v1.3、強いdefault KDF cost、password UX、KDF parameter persistence |
 | R-029 | High | ZSTE Wire Formatを早期FreezeしてInterop欠陥を固定 | 第三者互換不能、将来Format break | pre-wire-freeze status、canonical vectors、second implementation、RC前extension/MIME再確認 |
+| R-030 | High | Archive Entry NameのEncoding誤判定 / Lossy Decode | 文字化け、Wrong Path、Collision、Cross-platform互換性低下 | Raw Name保持、Format-aware decode、Confidence、Manual Override、Unicode collision validation、PoC 2-C |
+| R-031 | High | Extraction Filter要求時にBackendがEntryを再列挙 / 全展開 | `.DS_Store`等の不要File出力、Security / Privacy / Cleanup問題 | `SelectiveExtract` / `ExactOutputSet` Capability、別Backend、Unsupported明示、安全なStaging Policy |
+| R-032 | Medium | Archive Result / Error原因を過剰推定 | Userへ誤原因表示、Support誤誘導、問題切り分け悪化 | Stable Error Code、Raw Backend Log保持、`UnknownFailure` / Unknown Reasonを正式化 |
+| R-033 | Medium | Huge Result / Raw LogでError UIが巨大化・重くなる | Error確認不能、Memory / UI responsiveness低下 | Summary First、Virtual List、Scroll、Work Area基準Size、Minimum Size、Resize / Maximize |
 
 ---
 
@@ -105,6 +109,10 @@ R-026
 R-027
 R-028
 R-029
+R-030
+R-031
+R-032
+R-033
 ```
 
 Support Format数を増やす前に、少数FamilyでCommon Backend Modelが成立することを優先する。

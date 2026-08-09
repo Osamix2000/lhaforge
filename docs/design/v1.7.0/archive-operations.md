@@ -14,8 +14,9 @@ ArchiveManagerの上位に共通のOperation Planning Layerを設ける。
 User Operation
       ↓
 Operation Planner
-      ├─ Input Enumeration
-      ├─ Exclusion Policy
+      ├─ Input / Entry Enumeration
+      ├─ Compression / Extraction Filter Policy
+      ├─ Filename Decode Policy
       ├─ Destination Policy
       ├─ Security Validation
       └─ Operation Plan
@@ -330,13 +331,150 @@ ZSTEのWire Format、KDF、Authentication、Output Commit Policyは`zste-format.
 
 ---
 
-## 16. Open Items
+## 16. Extraction Entry Filtering
+
+圧縮側のInput Filterに加え、解凍側にも不要Entryを除外する共通Policyを設ける。
+
+基本Flow:
+
+```text
+Archive Entries
+      ↓
+Filename Decode Policy
+      ↓
+Security Validation
+      ↓
+Extraction Filter
+      ↓
+Final Extraction Set
+      ↓
+Backend
+      ↓
+Filesystem
+```
+
+除外対象だからという理由で、Decode / Security上の危険なEntryを無条件にTrustしない。
+
+### 16.1 Initial macOS metadata preset
+
+初期Preset候補:
+
+```text
+.DS_Store      File / any depth
+__MACOSX       Directory / any depth
+._*            File / any depth
+```
+
+`.`で始まるFile / Directoryを一括除外しない。`.github`、`.config`、`.well-known`等の正当なDataを失うためである。
+
+### 16.2 Extraction mode
+
+少なくとも次のModeを候補とする。
+
+```text
+Do not exclude
+Exclude automatically
+Ask when extracting
+```
+
+Default Mode / Default enabled presetはImplementation / UX Reviewで確定する。
+
+### 16.3 Common rule engine
+
+Compression / ExtractionでRule Engineを共通化し、Ruleに適用Operationを持たせる。
+
+```text
+Pattern
+Enabled
+Target: File / Directory / Both
+Scope: Any depth / Root only
+AppliesTo: Compression / Extraction / Both
+Description
+```
+
+CompressionとExtractionで意味が異なるRuleは別Presetとして管理できるようにする。
+
+### 16.4 Do not extract then delete by default
+
+Extraction Filterは原則として、
+
+```text
+Extract all
+    ↓
+Delete unwanted files
+```
+
+とはしない。
+
+不要EntryをFilesystemへ一度でも生成すると、削除失敗、監視Softwareへの露出、Reparse / Collision、余計なI/O等が発生するためである。
+
+BackendがSelective Extractionを正確に実行できる場合はFinal Extraction Setだけを渡す。
+
+必要Capability候補:
+
+```text
+SelectiveExtract
+ExactOutputSet
+```
+
+Backendが要求を満たさない場合は、別Backend、明確なUnsupported Result、安全なStaging等をPolicyとして選択する。大量Dataを無条件にStaging Copyする方式はDefaultにしない。
+
+---
+
+## 17. Filename Decode Integration
+
+Archive Entry NameのDecodeは`encoding.md`の共通Policyを利用する。
+
+閲覧 / Preview / Extractionで同じUnicode Entry Name Modelを共有する。
+
+解凍DialogのUser-facing文言候補:
+
+```text
+解凍時のファイル・フォルダー名の文字コード
+[ 自動判定（推奨） ]
+
+解凍後のファイル・フォルダー名が文字化けする場合に変更してください。
+```
+
+File List Window:
+
+```text
+ファイル・フォルダー名の文字コード
+[ 自動判定（推奨） ]
+```
+
+Encoding Override後はSecurity / Collision Validationを再適用する。
+
+---
+
+## 18. Extraction Preview
+
+Modern Extraction UIではPreviewをButtonで開く方式を基本方向とする。
+
+```text
+[キャンセル] [プレビュー] [解凍]
+```
+
+Preview WindowはEntry一覧を表示し、Filename Encodingを切り替えた場合は可能なBackendでRaw Name Metadataから再Decodeして表示を更新する。
+
+Previewは解凍必須Stepではなく、通常Userは直接解凍できる。
+
+従来型UIでも内部Operation Plan / Decode Policyは共通化する。旧Dialogへ同じControlを配置できない場合でも、設定画面や詳細Button等から同じ機能へ到達できる設計を検討する。
+
+---
+
+## 19. Open Items
 
 * Rule Syntaxの最終仕様
-* Default Rule Set
+* Compression Default Rule Set
+* Extraction Default Rule Set / macOS metadata presetのDefault
 * `.env.example`等の初期Exception
 * `.gitignore` Rule Import機能の要否
-* Exclusion Preview UI
+* Compression Exclusion Preview UI
+* Extraction Exclusion Preview / Ask UI
 * Backend別`ExactInputSet`対応状況
+* Backend別`SelectiveExtract` / `ExactOutputSet`対応状況
+* Selective Extraction不能時のStaging Policy
 * Extraction collision policy
+* Filename Encoding UIの最終Layout
 * Multi-volume Logical NameのBackend共通表現

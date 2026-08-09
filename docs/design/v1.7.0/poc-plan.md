@@ -19,6 +19,8 @@ Related documents:
 - `development-environment.md`
 - `dependencies.md`
 - `zste-format.md`
+- `archive-result-ui.md`
+- `regression-encoding.md`
 
 ---
 
@@ -181,7 +183,33 @@ PoC 2-BはComplete。
 
 PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をADR-0006と`zste-format.md`へ記録した。ZSTE実装自体はPoC 2-Bへ混在させず、Regression Baseline成立後のBuilt-in Backend実装段階で行う。
 
-次はPoC 2-CとしてJapanese Filename / CP932 / UTF-8 / Response File / Compound Archive等のEncoding / Path compatibilityを検証する。
+次はPoC 2-CとしてEncoding / Path compatibilityを検証する。
+
+PoC 2-Cは次のSub-stageへ分ける。
+
+```text
+PoC 2-C1  Direct Unicode Path
+PoC 2-C2  Response File Encoding / Newline
+PoC 2-C3  ZIP Entry Name Metadata / Cross-platform oriented Fixture
+PoC 2-C4  Compound Archive
+```
+
+主な対象:
+
+- Japanese Filename / Path
+- CP932 / Windows-31J
+- UTF-8
+- CP932で表現不能なUnicode
+- Emoji / Supplementary Plane
+- Combining Character
+- NFC / NFD
+- Response File
+- CRLF / LF / CR
+- Legacy ZIP metadata
+- `.DS_Store` / `__MACOSX` / `._*`のBaseline観測
+- Compound Archive
+
+PoC 2-Cでは新しいManual Encoding Override、Extraction Preview、Extraction Filter、Archive Result UIをまだProduction実装しない。Original v1.6.7とModern x86の現在Behaviorを先に固定する。
 
 詳細:
 
@@ -189,6 +217,7 @@ PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をA
 - [PoC 2-A UI Regression](regression-ui.md)
 - [PoC 2-A Config Save / Reload Regression](regression-config.md)
 - [PoC 2-B Archive Basic Operation Regression](regression-archive.md)
+- [PoC 2-C Encoding / Path Regression Plan](regression-encoding.md)
 
 ---
 
@@ -351,11 +380,13 @@ Performance budgetとSecurity budgetを同時に計測する。
 
 ---
 
-## 11. PoC 9: Logging / Encoding
+## 11. PoC 9: Logging / Encoding Modernization
 
 目的:
 
-Multi-process化後も診断性を確保し、Legacy Encodingを壊さないことを確認する。
+PoC 2-Cで取得したLegacy Original vs Modern x86のEncoding / Path Baselineを前提に、Multi-process化後の新Logging / Filename Decode / Legacy Boundary Architectureが診断性とCompatibilityを維持できることを確認する。
+
+PoC 2-CはLegacy Behavior Regression、PoC 9はModernized Architecture validationとしてScopeを分離する。
 
 確認:
 

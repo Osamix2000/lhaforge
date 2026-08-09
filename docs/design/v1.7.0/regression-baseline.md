@@ -12,6 +12,7 @@ Related documents:
 - `compile-blockers.md`
 - `development-environment.md`
 - `dependencies.md`
+- `regression-encoding.md`
 - `../../legacy/v1.6.7/legacy-baseline.md`
 
 ---
@@ -152,7 +153,7 @@ Status: **Complete for PoC 2-A (UI read + Config save/reload MATCH)**
 
 Source確認の結果、Module-local `LhaForge.ini` / `LFCaldix.ini`を配置したStaged EXEを使用することで、AppData / ProgramData fallbackを避けられる。PoC 2-A first passでは`AskUpdate=0`の隔離Configを使用し、DialogはCancelで閉じる。
 
-手順は[PoC 2-A UI Regression](regression-ui.md)および[Config Save / Reload Regression](regression-config.md)を参照する。Cancel-only UI / Isolationに加え、Clean Windows VMでConfig Save / Reload比較も完了し、Original / ModernのSemantic INI、`LFCaldix.ini`、外部AppData / ProgramData / Registry状態は`MATCH`またはunchangedとなった。次はPoC 2-BのArchive基本操作Regressionへ進む。
+手順は[PoC 2-A UI Regression](regression-ui.md)および[Config Save / Reload Regression](regression-config.md)を参照する。Cancel-only UI / Isolationに加え、Clean Windows VMでConfig Save / Reload比較も完了し、Original / ModernのSemantic INI、`LFCaldix.ini`、外部AppData / ProgramData / Registry状態は`MATCH`またはunchangedとなった。PoC 2-B Archive基本操作Regressionも完了しており、次はPoC 2-C Encoding / Path Regressionへ進む。
 
 ### Layer C: Archive Operations
 
@@ -174,7 +175,7 @@ PoC 2-Bでは`7-ZIP32.DLL` 9.22.0.2のx86 PE / SHA-256をHost準備時とVM初�
 
 途中でModern Release Listのみ`0xC0000005` CrashするRegressionを検出し、`FileListModel.cpp`と`LogListDialog.cpp`に存在した異なるGlobal `struct COMP`定義のODR違反を特定・修正した。修正後にFresh initializationから全操作を再実行し、Original / ModernのExtract / Roundtrip / ZIP semantics / external state / manual UI checksがすべて一致した。
 
-Japanese filename / path、CP932 / UTF-8、Response File、Compound Archive等はPoC 2-Cへ分離する。具体的Evidenceは[PoC 2-B Archive Basic Operation Regression](regression-archive.md)を参照する。
+Japanese filename / path、CP932 / UTF-8、Response File、Cross-platform oriented Filename Metadata、Compound Archive等はPoC 2-Cへ分離する。PoC 2-Cの事前Matrixは[PoC 2-C Encoding / Path Regression Plan](regression-encoding.md)、PoC 2-Bの具体的Evidenceは[PoC 2-B Archive Basic Operation Regression](regression-archive.md)を参照する。
 
 ### Layer D: Windows Integration
 

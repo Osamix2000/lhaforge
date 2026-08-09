@@ -13,6 +13,7 @@ Related documents:
 - `directory-layout.md`
 - `backend.md`
 - `archive-operations.md`
+- `archive-result-ui.md`
 - `migration.md`
 - `installer.md`
 - `security.md`
@@ -583,6 +584,29 @@ Excluded = 12
 
 必要な場合でもRule ID / Pattern種別までとし、除外された`.env`の内容等は絶対に記録しない。
 
+### 17.2 Operation Result / Diagnostic Export
+
+User-facing Archive Result / Error UIとFile Logは別の責務とするが、Structured Operation Contextを共有する。
+
+```text
+Structured Operation Result
+        ├─ Summary First UI
+        ├─ Simplified Diagnostic
+        ├─ Detailed Diagnostic
+        └─ Raw Backend Log
+```
+
+`ErrorCode`と`EventId`は同一概念として扱わない。
+
+- `ErrorCode`: User / Supportが同じFailure classを識別するStable Code
+- `EventId`: Logging上の個々のEvent種別
+
+Detailed Diagnosticでは、取得可能な範囲でBuild ID、Commit、Backend、Operation ID、Exception Code、Module / RVA、Raw Backend Log等を含める。
+
+Source File / Lineは取得可能な場合の追加情報とし、Release Diagnostics成立の必須条件にはしない。
+
+Copy / SaveのUser-facing Policy、Window Size、簡易 / 詳細LogのFieldは`archive-result-ui.md`に従う。
+
 ---
 
 ## 18. Backend Logging
@@ -861,10 +885,32 @@ Event Log Sink available?
 Unhandled Exception / Process Crash時に、可能な範囲で次を残す。
 
 - Process / Component
-- Version
-- Operation ID
+- Application Version
+- Build ID / Commit
+- Operation ID / Correlation ID
 - Last Phase
 - Exception / Error Code
+- Faulting Module
+- Module Base
+- Exception Address
+- RVA
+- Stack Trace（安全に取得可能な場合）
+- Source File / Line（Symbol情報から取得可能な場合）
+
+Source File / Lineを必須情報にしない。
+
+Release Optimization、PDB非配置、External DLL Error等ではその場でSource Lineを取得できないため、
+
+```text
+Build ID / Commit
+Module
+RVA
+Exception Code
+Stack Trace
+Raw Backend Log
+```
+
+を優先Diagnosticとする。対応PDBが存在する場合は後からSymbolicateできる。
 
 Crash Handlerで複雑なLogging処理や大量Allocationを行わない。
 

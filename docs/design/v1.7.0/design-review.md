@@ -8,6 +8,10 @@
 - Development branch: `develop-v1.7.0`
 - Purpose: 実装開始前に設計文書を横断し、矛盾、古いTBD、実装前Blocker、PoC対象を整理する。
 
+> **Historical Review Cycle 1**
+>
+> 本DocumentはBuild Modernization開始前のCycle 1 Evidenceとして保持する。PoC 2-B完了後のCurrent StateとPoC 2-C開始前Reviewは`design-review-cycle-2.md`を参照する。Cycle 1内の`Build environment not selected`等の記述は当時の状態であり、現在値へ上書きしない。
+
 Related documents:
 
 - `architecture.md`

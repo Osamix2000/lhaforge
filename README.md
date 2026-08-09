@@ -32,12 +32,16 @@ LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をMode
 * 公開仕様のZSTE (`.zste` / `.tar.zste`) によるAuthenticated Encryption対応
 * Legacy Format対応の維持
 * Unicode処理の改善
+* Windows / macOS等のCross-platform Archiveでのファイル・フォルダー名互換性向上
+* Archive Entry名の自動判定・Manual Encoding Override・Preview
 * DLL Load / Archive Path Securityの強化
 * Logging基盤の追加
+* Summary FirstのArchive Result / Error UIとDiagnostic Export
 * 現代Windows向けDPI・UI対応
 * Installer / Repair / Migration / Uninstallの再設計
 * v1.6.7環境からの安全なMigration
 * `.git`や`.env`等を圧縮時に除外できる共通Input Filter
+* `.DS_Store`、`__MACOSX`、`._*`等を解凍対象から除外できる共通Extraction Filter
 * Archive名を利用した展開先Directory作成
 * 必要な処理だけを昇格する最小権限設計
 * Signed / Unsigned双方を許容するRelease設計
@@ -87,6 +91,10 @@ v1.7.xではBackend種別に依存しないOperation Planningを導入し、圧�
 
 といったPolicyを選択できる方向で設計しています。除外RuleはOptionから追加・削除・有効化・無効化できる構造とします。
 
+解凍側にも共通Filterを用意し、`.DS_Store`、`__MACOSX`、`._*`等の不要Metadataを原則としてFilesystemへ書き出す前に除外できる設計とします。圧縮 / 解凍のRule Engineは共通化しつつ、Operationごとに適用範囲を指定できる構造とします。
+
+Archive内のファイル・フォルダー名はFormat Metadata、Backend情報、UTF-8 / CP932等のCompatibility Policyから可能な限り自動判定し、閲覧 / 解凍前Preview / 実際の解凍で同じFilename Decode Policyを共有します。必要な場合はUserが文字コードを明示Overrideできる設計とします。
+
 展開時には`sample.zip`を`sample\`、`source.tar.gz`を`source\`のように、Archive名を利用したSubdirectoryへ展開するOptionを提供します。
 
 ## Compatibility
@@ -125,11 +133,13 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [Logging Design](docs/design/v1.7.0/logging.md)
 * [Encoding Design](docs/design/v1.7.0/encoding.md)
 * [Archive Operation Design](docs/design/v1.7.0/archive-operations.md)
+* [Archive Result / Error UI Design](docs/design/v1.7.0/archive-result-ui.md)
 * [Signing and Privilege Design](docs/design/v1.7.0/signing.md)
 * [Security Design](docs/design/v1.7.0/security.md)
 * [Performance Design](docs/design/v1.7.0/performance.md)
 * [ZSTE v1 Format Design](docs/design/v1.7.0/zste-format.md)
-* [Design Review](docs/design/v1.7.0/design-review.md)
+* [Design Review Cycle 1 (Historical)](docs/design/v1.7.0/design-review.md)
+* [Design Review Cycle 2 - Pre PoC 2-C](docs/design/v1.7.0/design-review-cycle-2.md)
 * [PoC Plan](docs/design/v1.7.0/poc-plan.md)
 * [Risk Register](docs/design/v1.7.0/risk-register.md)
 * [Build Modernization](docs/design/v1.7.0/build-modernization.md)
@@ -138,6 +148,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [PoC 2-A UI Regression](docs/design/v1.7.0/regression-ui.md)
 * [PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)
 * [PoC 2-B Archive Basic Operation Regression](docs/design/v1.7.0/regression-archive.md)
+* [PoC 2-C Encoding / Path Regression Plan](docs/design/v1.7.0/regression-encoding.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -170,7 +181,7 @@ Migration Design             Draft
 Installer Design             Draft
 Logging Design               Draft
 Encoding Design              Draft
-Design Review                Draft
+Design Review                Cycle 2 complete / PoC 2-C ready
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          PoC 1 complete

@@ -19,6 +19,7 @@ Related design documents:
 
 * `ownership-matrix.md`
 * `archive-operations.md`
+* `archive-result-ui.md`
 * `signing.md`
 * `security.md`
 * `performance.md`
@@ -29,7 +30,9 @@ Related design documents:
 * `logging.md`
 * `encoding.md`
 * `design-review.md`
+* `design-review-cycle-2.md`
 * `poc-plan.md`
+* `regression-encoding.md`
 * `risk-register.md`
 * `build-modernization.md`
 * `zste-format.md`
@@ -71,6 +74,7 @@ v1.7.xでは、主に次を実現する。
 * LhaForge本体のx64化
 * 現代MSVC / Windows SDKによるBuild
 * Unicodeを基本とした内部処理
+* Cross-platform Archive Filename Metadataの安全なDecodeとManual Override
 * DPI・現代Windows UIへの対応
 * DLLロード方式の安全化
 * Archive Path Securityの強化
@@ -84,12 +88,14 @@ v1.7.xでは、主に次を実現する。
 * External DLLが利用できない場合のBuilt-in Backend
 * x86専用DLLを継続利用するLegacyHost
 * Backend障害時の明確な診断
+* Summary FirstのArchive Result / Error UIとRaw Backend Diagnostic保持
 * Repair / Recovery経路の確保
 
 ### Security and Performance
 
 * Backend種別に依存しない共通Security Policy
 * 圧縮前に最終Input Setを確定し、`.git`や`.env`等の誤共有を防止できる除外Policy
+* 解凍前にFinal Extraction Setを確定し、`.DS_Store`等の不要Metadataを除外できるPolicy
 * Archive名を安全に利用した展開先Directory生成
 * 不要なFilesystem再ScanやData Copyを避けるOperation Planning
 * 大量File、巨大Archive、異常Archiveを考慮したResource Management
