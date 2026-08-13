@@ -1,6 +1,6 @@
 # LhaForge v1.7.0 PoC 2-C Encoding / Path Regression Plan
 
-- Status: In progress / PoC 2-C1 complete
+- Status: In progress / PoC 2-C1 complete / PoC 2-C2 normal complete
 - Baseline: LhaForge v1.6.7 original binary
 - Modern comparison: `develop-v1.7.0` x86 Release
 - Development branch: `develop-v1.7.0`
@@ -11,6 +11,7 @@ Related documents:
 - `regression-baseline.md`
 - `regression-archive.md`
 - `regression-encoding-c1.md`
+- `regression-encoding-c2.md`
 - `encoding.md`
 - `archive-operations.md`
 - `archive-result-ui.md`
@@ -139,13 +140,13 @@ Detailed execution evidence:
 
 - [PoC 2-C1 Direct Unicode Path Regression Result](regression-encoding-c1.md)
 
-次はPoC 2-C2 Response File Encoding / Newlineへ進む。
+PoC 2-C2正常系Baselineも2026-08-13に`MATCH`で完了した。C2 Abnormal Caseを正常系から分離して継続する。
 
 ---
 
 ## 6. PoC 2-C2: Response File
 
-Status: **Tooling prepared / execution pending**
+Status: **Normal Baseline Complete / MATCH (2026-08-13); Abnormal Cases Pending**
 
 Legacy command line parserが持つ`/cp:*`と`/@...` / `/$...`をBaselineとして観測する。
 
@@ -204,6 +205,14 @@ dollar-delete-utf8
 - External AppData / ProgramData state
 
 Invalid `/cp`、Invalid UTF-8、Invalid / odd-length UTF-16等は正常系と分離し、Normal MatrixのOriginal / Modern比較完了後にAbnormal Caseとして扱う。
+
+正常系最終RunではOriginal / Modernとも11 / 11 CaseがPASSし、Final Classificationは`MATCH`となった。`/@` CaseはResponse Fileをbyte-identicalのまま保持し、`/$` Caseは正常読込後に削除された。External AppData / ProgramData stateに差異はなく、Generated ZIP byte SHA-256も11 / 11 pair一致した。
+
+Detailed execution evidence:
+
+- [PoC 2-C2 Response File Encoding / Newline Regression Result](regression-encoding-c2.md)
+
+C2全体はAbnormal Case完了まで`In progress`とし、正常系EvidenceはTested HEAD `ef915cad9913582f42bdd737d33104c4e77dd1b8`のHistorical BaselineとしてFreezeする。
 
 ---
 

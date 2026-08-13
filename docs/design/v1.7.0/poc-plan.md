@@ -183,13 +183,13 @@ PoC 2-BはComplete。
 
 PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をADR-0006と`zste-format.md`へ記録した。ZSTE実装自体はPoC 2-Bへ混在させず、Regression Baseline成立後のBuilt-in Backend実装段階で行う。
 
-PoC 2-C Encoding / Path compatibilityへ進み、PoC 2-C1 Direct Unicode Pathは2026-08-13にOriginal / Modern全Case PASS、最終Classification `MATCH`で完了した。次はPoC 2-C2 Response File Encoding / Newlineを検証する。
+PoC 2-C Encoding / Path compatibilityへ進み、PoC 2-C1 Direct Unicode Pathは2026-08-13にOriginal / Modern全Case PASS、最終Classification `MATCH`で完了した。PoC 2-C2 Response File Encoding / Newlineの正常系Baselineも同日にOriginal / Modern 11 / 11 PASS、最終Classification `MATCH`で完了した。C2全体はAbnormal Case完了まで`In progress`とする。
 
 PoC 2-Cは次のSub-stageへ分ける。
 
 ```text
 PoC 2-C1  Direct Unicode Path                              Complete / MATCH
-PoC 2-C2  Response File Encoding / Newline                      Next
+PoC 2-C2  Response File Encoding / Newline                 Normal Complete / MATCH; Abnormal Next
 PoC 2-C3  ZIP Entry Name Metadata / Cross-platform oriented Fixture  Planned
 PoC 2-C4  Compound Archive                                      Planned
 ```
@@ -219,6 +219,7 @@ PoC 2-Cでは新しいManual Encoding Override、Extraction Preview、Extraction
 - [PoC 2-B Archive Basic Operation Regression](regression-archive.md)
 - [PoC 2-C Encoding / Path Regression Plan](regression-encoding.md)
 - [PoC 2-C1 Direct Unicode Path Regression Result](regression-encoding-c1.md)
+- [PoC 2-C2 Response File Encoding / Newline Regression Result](regression-encoding-c2.md)
 
 ---
 

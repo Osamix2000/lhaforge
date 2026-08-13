@@ -1,5 +1,8 @@
 # PoC 2-C2 Response File Encoding / Newline Regression Checklist
 
+- Status: **Normal Baseline Complete / MATCH (2026-08-13)**
+- Result: [PoC 2-C2 Response File Encoding / Newline Regression Result](../../docs/design/v1.7.0/regression-encoding-c2.md)
+
 このChecklistは **PoC 2-C2 Response File Encoding / Newline** の正常系Baselineを対象にします。
 
 PoC 2-C1のEvidenceとは別に、`fixture-response`、`response-results`、`evidence-response`を使用します。C1の11件のRun Recordや`evidence`を上書きしません。
