@@ -75,12 +75,12 @@ foreach ($case in Get-Poc2C1Cases) {
         [void]$issues.Add(('Pathprobe fingerprint differs: {0}' -f $case.id))
     }
 
-    $expected = [string]$before.fixture.inputInventory.fingerprint
+    $expected = [string]$before.fixture.pathProbeInventory.fingerprint
     if ($of -cne $expected) {
-        [void]$issues.Add(('Original pathprobe differs from fixture: {0}' -f $case.id))
+        [void]$issues.Add(('Original pathprobe differs from ASCII-only path fixture: {0}' -f $case.id))
     }
     if ($mf -cne $expected) {
-        [void]$issues.Add(('Modern pathprobe differs from fixture: {0}' -f $case.id))
+        [void]$issues.Add(('Modern pathprobe differs from ASCII-only path fixture: {0}' -f $case.id))
     }
 }
 
@@ -143,6 +143,7 @@ $report = [ordered]@{
     modernExeSha256 = [string]$modern.exe.sha256
     sevenZipDllSha256 = [string]$original.dll.sha256
     referenceZipSha256 = [string]$before.fixture.referenceZip.sha256
+	pathProbeReferenceZipSha256 = [string]$before.fixture.pathProbeReferenceZip.sha256
 }
 $reportPath = Join-Path $evidenceRoot 'comparison.json'
 Write-JsonUtf8NoBom -Value $report -Path $reportPath -Depth 12

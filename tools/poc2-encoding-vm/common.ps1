@@ -446,6 +446,16 @@ function New-Poc2C1Fixture {
     $referenceZip = Join-Path $Root 'reference-unicode.zip'
     New-ReferenceUnicodeZip -InputRoot $inputRoot -ZipPath $referenceZip
 
+	$pathProbeRoot = Join-Path $Root 'pathprobe-input'
+	New-Item -ItemType Directory -Path $pathProbeRoot -Force | Out-Null
+	[System.IO.File]::WriteAllText(
+		(Join-Path $pathProbeRoot 'probe.txt'),
+		"pathprobe payload`r`n",
+		[System.Text.Encoding]::ASCII
+	)
+	$pathProbeReferenceZip = Join-Path $Root 'pathprobe-reference.zip'
+	New-ReferenceUnicodeZip -InputRoot $pathProbeRoot -ZipPath $pathProbeReferenceZip
+
     $archivePathsRoot = Join-Path $Root 'archive-paths'
     New-Item -ItemType Directory -Path $archivePathsRoot -Force | Out-Null
     $archivePathEvidence = @()
@@ -453,7 +463,7 @@ function New-Poc2C1Fixture {
         $caseName = Get-Poc2C1CaseName -Case $case
         $archiveName = 'archive-' + $caseName + '.zip'
         $archivePath = Join-Path $archivePathsRoot $archiveName
-        Copy-Item -LiteralPath $referenceZip -Destination $archivePath -Force
+        Copy-Item -LiteralPath $pathProbeReferenceZip -Destination $archivePath -Force
         $archivePathEvidence += [pscustomobject]@{
             id = $case.id
             fileName = Get-UnicodeStringEvidence -Text $archiveName
@@ -465,6 +475,17 @@ function New-Poc2C1Fixture {
     $combinedInventory = Get-UnicodeDirectoryInventory -Path $combinedRoot
     $zipEvidence = Get-FileHashEvidence -Path $referenceZip
     $zipInventory = Get-ZipUnicodeInventory -Path $referenceZip
+	$pathProbeInventory = Get-UnicodeDirectoryInventory -Path $pathProbeRoot
+	$pathProbeZipEvidence = Get-FileHashEvidence -Path $pathProbeReferenceZip
+	$pathProbeZipInventory = Get-ZipUnicodeInventory -Path $pathProbeReferenceZip
+
+	if ([string]$pathProbeZipInventory.fileFingerprint -cne [string]$pathProbeInventory.archiveSemanticFingerprint) {
+		throw 'Path Probe reference ZIP semantic fingerprint does not match the ASCII-only source fixture.'
+	}
+	$nonAsciiEntries = @($pathProbeZipInventory.entries | Where-Object { [string]$_.fullName -match '[^\x00-\x7F]' })
+	if ($nonAsciiEntries.Count -ne 0) {
+		throw 'Path Probe reference ZIP contains a non-ASCII entry name.'
+	}
 
     return [pscustomobject]@{
         root = $Root
@@ -475,6 +496,10 @@ function New-Poc2C1Fixture {
         combinedInventory = $combinedInventory
         referenceZip = $zipEvidence
         referenceZipEntries = $zipInventory
+		pathProbeRoot = $pathProbeRoot
+		pathProbeInventory = $pathProbeInventory
+		pathProbeReferenceZip = $pathProbeZipEvidence
+		pathProbeReferenceZipEntries = $pathProbeZipInventory
         cases = @($caseEvidence)
         archivePaths = @($archivePathEvidence)
     }

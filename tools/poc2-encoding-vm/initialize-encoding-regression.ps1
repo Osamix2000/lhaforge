@@ -97,7 +97,9 @@ Write-Host '[POC2-ENC] PoC 2-C1 VM initialization passed.'
 Write-Host ('[POC2-ENC] Kit root       : {0}' -f $kitRoot)
 Write-Host ('[POC2-ENC] DLL SHA-256    : {0}' -f $originalDll.sha256)
 Write-Host ('[POC2-ENC] Reference ZIP  : {0}' -f $fixture.referenceZip.sha256)
+Write-Host ('[POC2-ENC] Path Probe ZIP : {0}' -f $fixture.pathProbeReferenceZip.sha256)
 Write-Host ('[POC2-ENC] Fixture files  : {0}' -f $fixture.inputInventory.files.Count)
+Write-Host ('[POC2-ENC] Path probe files: {0}' -f $fixture.pathProbeInventory.files.Count)
 Write-Host ('[POC2-ENC] Fixture dirs   : {0}' -f $fixture.inputInventory.directories.Count)
 Write-Host ''
 Write-Host '[POC2-ENC] Cases:'

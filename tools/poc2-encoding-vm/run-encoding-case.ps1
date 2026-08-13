@@ -72,6 +72,7 @@ if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
 
 $before = Read-JsonUtf8 -Path $beforePath
 $expectedFingerprint = [string]$before.fixture.inputInventory.fingerprint
+$expectedPathProbeFingerprint = [string]$before.fixture.pathProbeInventory.fingerprint
 $expectedArchiveFingerprint = [string]$before.fixture.inputInventory.archiveSemanticFingerprint
 $cfgArg = Q ('/cfg:' + $config)
 
@@ -179,20 +180,20 @@ switch ($Operation) {
         )
         $process = Invoke-LhaForge -Exe $exe -WorkingDirectory $targetRoot -Arguments $args
         $inventory = Get-UnicodeDirectoryInventory -Path $output
-        $passed = ($inventory.exists -and ([string]$inventory.fingerprint -ceq $expectedFingerprint))
+        $passed = ($inventory.exists -and ([string]$inventory.fingerprint -ceq $expectedPathProbeFingerprint))
 
         $record.process = $process
         $record.success = $passed
         $record.details = [ordered]@{
             archiveFileName = Get-UnicodeStringEvidence -Text $archiveName
             outputDirectoryName = Get-UnicodeStringEvidence -Text $outputName
-            expectedFingerprint = $expectedFingerprint
+            expectedFingerprint = $expectedPathProbeFingerprint
             actualInventory = $inventory
         }
 
         $path = Save-RunRecord -Target $Target -Operation $Operation -CaseId $CaseId -Record $record
         Write-Host ('[POC2-ENC] Evidence: {0}' -f $path)
-        Write-Host ('[POC2-ENC] Expected fingerprint: {0}' -f $expectedFingerprint)
+        Write-Host ('[POC2-ENC] Expected fingerprint: {0}' -f $expectedPathProbeFingerprint)
         Write-Host ('[POC2-ENC] Actual fingerprint  : {0}' -f $inventory.fingerprint)
 
         if ($process.looksLikeCrash) {

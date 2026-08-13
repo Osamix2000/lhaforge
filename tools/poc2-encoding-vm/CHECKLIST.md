@@ -56,7 +56,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-encoding-case.
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-encoding-case.ps1 -Target original -Operation pathprobe -CaseId nfd
 ```
 
-各CaseはArchive File NameとOutput Directory Nameの両方に対象Unicodeを含めます。抽出結果はFixtureのCode Point + Payload SHA-256 Fingerprintと比較されます。
+各CaseはArchive File NameとOutput Directory Nameの両方に対象Unicodeを含めます。Path Probe専用ZIPの内部Entry NameとPayloadはASCII-onlyに固定し、書庫内部のUnicode処理がDirect Path判定へ混入しないようにします。抽出結果はPath Probe専用FixtureのCode Point + Payload SHA-256 Fingerprintと比較されます。
 
 ## 5. Original - Compress / Re-extract
 
