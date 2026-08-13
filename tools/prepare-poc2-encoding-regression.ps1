@@ -26,6 +26,7 @@ $zipPath = Join-Path $outputRoot 'poc2-encoding-vm-kit.zip'
 $expectedSevenZipSha256 = 'a82d2b10960f9ebaf5b9d56e2f495c72c22f5de542740d585ab14cb0b291999c'
 
 . (Join-Path $vmScriptRoot 'common.ps1')
+. (Join-Path $vmScriptRoot 'response-common.ps1')
 
 function Write-Utf16File {
     param(
@@ -166,14 +167,20 @@ $kitScriptRoot = Join-Path $kitRoot 'scripts'
 New-Item -ItemType Directory -Path $kitScriptRoot -Force | Out-Null
 foreach ($name in @(
     'common.ps1',
+    'response-common.ps1',
     'initialize-encoding-regression.ps1',
     'run-encoding-case.ps1',
     'capture-encoding-result.ps1',
-    'compare-encoding-results.ps1'
+    'compare-encoding-results.ps1',
+    'initialize-response-regression.ps1',
+    'run-response-case.ps1',
+    'capture-response-result.ps1',
+    'compare-response-results.ps1'
 )) {
     Copy-Item -LiteralPath (Join-Path $vmScriptRoot $name) -Destination (Join-Path $kitScriptRoot $name) -Force
 }
 Copy-Item -LiteralPath (Join-Path $vmScriptRoot 'CHECKLIST.md') -Destination (Join-Path $kitRoot 'CHECKLIST.md') -Force
+Copy-Item -LiteralPath (Join-Path $vmScriptRoot 'RESPONSE-CHECKLIST.md') -Destination (Join-Path $kitRoot 'RESPONSE-CHECKLIST.md') -Force
 
 $repoHead = (& git -C $repoRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoHead)) {
@@ -188,16 +195,25 @@ foreach ($case in Get-Poc2C1Cases) {
     }
 }
 
+$responseCaseManifest = @()
+foreach ($case in Get-Poc2C2Cases) {
+    $responseCaseManifest += [ordered]@{
+        id = $case.id
+        argumentPlan = @($case.argumentPlan)
+    }
+}
+
 $manifest = [ordered]@{
     schemaVersion = 1
     preparedUtc = [DateTime]::UtcNow.ToString('o')
-    purpose = 'PoC 2-C1 direct Unicode path and UTF-8 ZIP regression VM kit'
+    purpose = 'PoC 2-C encoding and path regression VM kit (C1 + C2 tooling)'
     repoHead = $repoHead
     modernConfiguration = $ModernConfiguration
     original = $original
     modern = $modern
     fixedBackend = $sourceDllEvidence
     cases = @($caseManifest)
+    responseCases = @($responseCaseManifest)
     fixtureGeneration = 'Generated inside the VM from ASCII-only PowerShell code points.'
 }
 Write-JsonUtf8NoBom -Value $manifest -Path (Join-Path $kitRoot 'manifest.json') -Depth 18
@@ -210,7 +226,7 @@ Compress-Archive -Path (Join-Path $kitRoot '*') -DestinationPath $zipPath -Compr
 $kitZipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
 
 Write-Host ''
-Write-Host '[POC2-ENC] PoC 2-C1 VM kit prepared.'
+Write-Host '[POC2-ENC] PoC 2-C VM kit prepared.'
 Write-Host ('[POC2-ENC] Directory: {0}' -f $kitRoot)
 Write-Host ('[POC2-ENC] ZIP      : {0}' -f $zipPath)
 Write-Host ('[POC2-ENC] ZIP SHA  : {0}' -f $kitZipHash)
@@ -222,5 +238,5 @@ Write-Host ('  PE      : {0} ({1})' -f $sourceDllEvidence.peMachine, $sourceDllE
 Write-Host ('  SHA-256 : {0}' -f $sourceDllEvidence.sha256)
 Write-Host ''
 Write-Host '[POC2-ENC] The VM kit contains ASCII paths only.'
-Write-Host '[POC2-ENC] Unicode fixture names are generated inside the VM from code points.'
-Write-Host '[POC2-ENC] Copy the ZIP to the Windows VM local fixed disk, extract it, and read CHECKLIST.md.'
+Write-Host '[POC2-ENC] Unicode fixture names and C2 response content are generated inside the VM from code points.'
+Write-Host '[POC2-ENC] Copy the ZIP to the Windows VM local fixed disk, extract it, and read CHECKLIST.md / RESPONSE-CHECKLIST.md.'

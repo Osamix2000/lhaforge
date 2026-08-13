@@ -145,17 +145,50 @@ Detailed execution evidence:
 
 ## 6. PoC 2-C2: Response File
 
+Status: **Tooling prepared / execution pending**
+
 Legacy command line parserが持つ`/cp:*`と`/@...` / `/$...`をBaselineとして観測する。
 
-Encoding / Newline Matrix候補:
+Source確認で次を固定した。
+
+- Response File Code Pageの初期値はSJIS。
+- `/cp:utf8` / `/cp:utf-8`はUTF-8、`/cp:utf16` / `/cp:utf-16` / `/cp:unicode`はUTF-16、`/cp:sjis`系AliasはSJISへ切り替える。
+- bare `/cp`はSJISへ戻す。
+- ParserはCommand Lineを左から順に処理するため、`/cp`は**その後に読むResponse File**へ適用される。
+- `/@file`は読込後もResponse Fileを保持する。
+- `/$file`は正常読込後にResponse Fileを削除する。読込失敗時は削除処理へ到達しない。
+- Response File Readerは変換後の`CR`、`LF`、`NUL`を独立した区切りとして扱い、空行は無視する。
+- 各非空行はPathとして扱い、外側のQuoteを外してFile Listへ追加する。
+- UTF-8はBOMあり / なしを扱う。
+- UTF-16はLE BOM / BE BOMを識別し、BOMなしはNative UTF-16LEとして扱うLegacy behaviorを持つ。
+- LegacyのSJIS指定は内部的にWindows ANSI conversionへ依存するため、C2 normal baselineはANSI Code Page `932`をEnvironment Gateとし、異なるVMでは自動設定変更せず停止する。
+
+C2正常系Matrix:
 
 ```text
-CP932          + CRLF
-UTF-8 no BOM   + LF
-UTF-8 BOM      + CRLF
-UTF-16LE BOM   + CR
-UTF-16BE BOM   + CRLF
+sjis-crlf
+utf8-nobom-crlf
+utf8-bom-crlf
+utf16le-bom-crlf
+utf16be-bom-crlf
+utf16le-nobom-crlf
+utf8-nobom-lf
+utf8-nobom-cr
+sequence-sjis-then-utf8
+sequence-utf8-reset-sjis
+dollar-delete-utf8
 ```
+
+設計上の分離:
+
+- Response File自体のPathはASCII-onlyとし、C1 Direct Unicode Pathを再混入させない。
+- Response File内のTarget PathはVM内でCode Pointから生成する。
+- CP932 CaseはASCII + CP932 representable Japaneseを使用する。
+- UTF系CaseはASCII / Japanese / Emoji / Supplementary Plane / Combining / NFC / NFDを使用する。
+- Normal Caseは同じZIP Compression pathへ流し、生成ZIPのEntry Name + Payload SHA-256 FingerprintからParserが選択したInput Setを自動判定する。
+- Generated ZIP全体のSHA-256一致はSecondary Observationとし、Input Set / Entry Name / PayloadをPrimary Evidenceとする。
+- `/@` CaseではResponse File working copyがbyte-identicalで残ること、`/$` Caseでは削除されることを確認する。
+- C1 Evidenceとは別の`fixture-response` / `response-results` / `evidence-response`を使用する。
 
 各Caseで次を記録する。
 
@@ -163,15 +196,14 @@ UTF-16BE BOM   + CRLF
 - BOM
 - Newline
 - Command line argument order
-- Parser result
-- Target file list
+- Expected Target file list
+- Generated ZIP logical Entry Name
+- Payload SHA-256
 - Operation result
-- Output path / name
-- Error message when rejected
+- Response File post-state
+- External AppData / ProgramData state
 
-`/cp`指定とResponse File指定の順序依存がある場合はBehaviorとして記録する。
-
-Invalid UTF-8 / Invalid UTF-16は正常系と分離し、Abnormal Caseとして扱う。
+Invalid `/cp`、Invalid UTF-8、Invalid / odd-length UTF-16等は正常系と分離し、Normal MatrixのOriginal / Modern比較完了後にAbnormal Caseとして扱う。
 
 ---
 
