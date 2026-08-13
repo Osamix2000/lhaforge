@@ -31,7 +31,7 @@ if ($running.Count -ne 0) {
     throw 'Close all LhaForge processes before initialization.'
 }
 
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$manifest = Read-JsonUtf8 -Path $manifestPath
 
 foreach ($target in @('original', 'modern')) {
     $targetRoot = Join-Path $kitRoot $target

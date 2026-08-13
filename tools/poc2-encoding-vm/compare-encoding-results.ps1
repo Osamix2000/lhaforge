@@ -38,9 +38,9 @@ foreach ($path in @($beforePath, $originalPath, $modernPath)) {
     }
 }
 
-$before = Get-Content -LiteralPath $beforePath -Raw | ConvertFrom-Json
-$original = Get-Content -LiteralPath $originalPath -Raw | ConvertFrom-Json
-$modern = Get-Content -LiteralPath $modernPath -Raw | ConvertFrom-Json
+$before = Read-JsonUtf8 -Path $beforePath
+$original = Read-JsonUtf8 -Path $originalPath
+$modern = Read-JsonUtf8 -Path $modernPath
 
 $issues = New-Object System.Collections.Generic.List[string]
 $observations = New-Object System.Collections.Generic.List[string]

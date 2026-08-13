@@ -47,7 +47,7 @@ foreach ($name in $required) {
 
 $runs = @()
 foreach ($file in Get-ChildItem -LiteralPath $runRoot -Filter '*.json' -File | Sort-Object Name) {
-    $runs += (Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json)
+    $runs += (Read-JsonUtf8 -Path $file.FullName)
 }
 
 $result = [ordered]@{

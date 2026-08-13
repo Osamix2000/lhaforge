@@ -12,6 +12,20 @@ function Write-JsonUtf8NoBom {
     [System.IO.File]::WriteAllText($Path, $json + "`n", $encoding)
 }
 
+function Read-JsonUtf8 {
+	param(
+		[Parameter(Mandatory = $true)][string]$Path
+	)
+
+	if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+		throw ('JSON file was not found: {0}' -f $Path)
+	}
+
+	$encoding = New-Object System.Text.UTF8Encoding($false, $true)
+	$json = [System.IO.File]::ReadAllText($Path, $encoding)
+	return ($json | ConvertFrom-Json)
+}
+
 function Get-StringSha256 {
     param([Parameter(Mandatory = $true)][string]$Text)
 

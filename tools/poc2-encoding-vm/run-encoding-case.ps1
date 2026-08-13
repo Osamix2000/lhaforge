@@ -70,7 +70,7 @@ if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
     throw ('LhaForge.exe was not found: {0}' -f $exe)
 }
 
-$before = Get-Content -LiteralPath $beforePath -Raw | ConvertFrom-Json
+$before = Read-JsonUtf8 -Path $beforePath
 $expectedFingerprint = [string]$before.fixture.inputInventory.fingerprint
 $expectedArchiveFingerprint = [string]$before.fixture.inputInventory.archiveSemanticFingerprint
 $cfgArg = Q ('/cfg:' + $config)
