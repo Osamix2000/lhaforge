@@ -28,6 +28,18 @@ $expectedSevenZipSha256 = 'a82d2b10960f9ebaf5b9d56e2f495c72c22f5de542740d585ab14
 . (Join-Path $vmScriptRoot 'common.ps1')
 . (Join-Path $vmScriptRoot 'response-common.ps1')
 
+$preparePsVersion = [version]$PSVersionTable.PSVersion
+if (
+    [string]$PSVersionTable.PSEdition -cne 'Desktop' -or
+    $preparePsVersion.Major -ne 5 -or
+    $preparePsVersion.Minor -ne 1
+) {
+    throw ('PoC 2-C VM kit generation requires Windows PowerShell 5.1 exactly. Current runtime: PowerShell {0}, PSEdition {1}.' -f $PSVersionTable.PSVersion, $PSVersionTable.PSEdition)
+}
+
+Assert-Poc2C2EncodingByteGenerator
+Write-Host '[POC2-ENC] C2 encoding byte generator smoke test passed.'
+
 function Write-Utf16File {
     param(
         [Parameter(Mandatory = $true)][string]$Path,

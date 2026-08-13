@@ -197,16 +197,49 @@ function Get-Poc2C2EncodedBytes {
 		}
 	}
 
-	$payload = [byte[]]$encoder.GetBytes($Text)
-	$preamble = if ($Bom) { [byte[]]$encoder.GetPreamble() } else { [byte[]]@() }
-	$result = New-Object byte[] ($preamble.Length + $payload.Length)
+	[byte[]]$payload = $encoder.GetBytes($Text)
+	[byte[]]$preamble = @()
+	if ($Bom) {
+		$preamble = $encoder.GetPreamble()
+	}
+
+	[byte[]]$result = New-Object byte[] ($preamble.Length + $payload.Length)
 	if ($preamble.Length -gt 0) {
 		[Array]::Copy($preamble, 0, $result, 0, $preamble.Length)
 	}
 	if ($payload.Length -gt 0) {
 		[Array]::Copy($payload, 0, $result, $preamble.Length, $payload.Length)
 	}
-	return [byte[]]$result
+
+	Write-Output -NoEnumerate $result
+}
+
+function Assert-Poc2C2EncodingByteGenerator {
+	$tests = @(
+		[pscustomobject]@{ name = 'cp932-ascii'; text = 'A'; encoding = 'cp932'; bom = $false; expectedHex = '41' },
+		[pscustomobject]@{ name = 'cp932-japanese'; text = (New-StringFromCodePoints -CodePoints @(0x65E5, 0x672C, 0x8A9E)); encoding = 'cp932'; bom = $false; expectedHex = '93FA967B8CEA' },
+		[pscustomobject]@{ name = 'utf8-nobom'; text = 'A'; encoding = 'utf8'; bom = $false; expectedHex = '41' },
+		[pscustomobject]@{ name = 'utf8-bom'; text = 'A'; encoding = 'utf8'; bom = $true; expectedHex = 'EFBBBF41' },
+		[pscustomobject]@{ name = 'utf16le-nobom'; text = 'A'; encoding = 'utf16le'; bom = $false; expectedHex = '4100' },
+		[pscustomobject]@{ name = 'utf16le-bom'; text = 'A'; encoding = 'utf16le'; bom = $true; expectedHex = 'FFFE4100' },
+		[pscustomobject]@{ name = 'utf16be-bom'; text = 'A'; encoding = 'utf16be'; bom = $true; expectedHex = 'FEFF0041' }
+	)
+
+	foreach ($test in $tests) {
+		[byte[]]$actual = Get-Poc2C2EncodedBytes `
+			-Text $test.text `
+			-Encoding $test.encoding `
+			-Bom ([bool]$test.bom)
+
+		if ($null -eq $actual) {
+			throw ('PoC 2-C2 encoding byte generator returned null: {0}' -f $test.name)
+		}
+
+		$actualHex = ([System.BitConverter]::ToString($actual)).Replace('-', '')
+		if ($actualHex -cne [string]$test.expectedHex) {
+			throw ('PoC 2-C2 encoding byte generator mismatch for {0}. Expected {1}, actual {2}.' -f $test.name, $test.expectedHex, $actualHex)
+		}
+	}
 }
 
 function Write-Poc2C2ResponseFile {

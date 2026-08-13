@@ -45,6 +45,8 @@ if ([int]$runtime.defaultEncodingCodePage -ne 932) {
 	throw ('PoC 2-C2 CP932 baseline requires Windows ANSI code page 932 under Windows PowerShell 5.1. Current code page: {0}. Do not change system settings automatically; stop and review the VM environment.' -f $runtime.defaultEncodingCodePage)
 }
 
+Assert-Poc2C2EncodingByteGenerator
+
 $manifest = Read-JsonUtf8 -Path $manifestPath
 
 foreach ($target in @('original', 'modern')) {
