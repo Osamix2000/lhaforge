@@ -149,6 +149,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [PoC 2-A Config Save / Reload Regression](docs/design/v1.7.0/regression-config.md)
 * [PoC 2-B Archive Basic Operation Regression](docs/design/v1.7.0/regression-archive.md)
 * [PoC 2-C Encoding / Path Regression Plan](docs/design/v1.7.0/regression-encoding.md)
+* [PoC 2-C1 Direct Unicode Path Regression Result](docs/design/v1.7.0/regression-encoding-c1.md)
 * [Development Environment](docs/design/v1.7.0/development-environment.md)
 * [Dependency Management](docs/design/v1.7.0/dependencies.md)
 
@@ -163,7 +164,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 ## Development Status
 
-PoC 1のModern x86 Buildは完了しています。PoC 2-AのUI / Configuration RegressionとPoC 2-BのZIP Archive基本操作Regressionも`MATCH`で完了し、次はPoC 2-CのEncoding / Path Compatibility確認へ進む段階です。
+PoC 1のModern x86 Build、PoC 2-AのUI / Configuration Regression、PoC 2-BのZIP Archive基本操作Regressionに加え、PoC 2-C1 Direct Unicode Path Regressionも`MATCH`で完了しました。次はPoC 2-C2 Response File Encoding / Newlineへ進む段階です。
 
 ```text
 Legacy Baseline              Done
@@ -181,11 +182,11 @@ Migration Design             Draft
 Installer Design             Draft
 Logging Design               Draft
 Encoding Design              Draft
-Design Review                Cycle 2 complete / PoC 2-C ready
+Design Review                Cycle 2 complete / PoC 2-C in progress
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          PoC 1 complete
-Regression Baseline          PoC 2-A / PoC 2-B complete; PoC 2-C next
+Regression Baseline          PoC 2-A / 2-B / 2-C1 complete; PoC 2-C2 next
 Development Environment      Verified
 Dependency Management        BM-002 verified
 x64 Migration                Not started
@@ -215,7 +216,9 @@ PoC 2-Bでは、Original / Modern x86へ同一SHA-256のx86 `7-ZIP32.DLL` 9.22.0
 
 修正後は同一Reference ZIP / 同一`7-ZIP32.DLL`で全操作をFresh Runし、Extract / Roundtrip / ZIP semantics / external state / List・Test UIの全CriteriaがPassしました。最終Classificationは`MATCH`です。詳細は[PoC 2-B Archive Basic Operation Regression](docs/design/v1.7.0/regression-archive.md)を参照してください。
 
-次はPoC 2-CとしてJapanese Filename / CP932 / UTF-8 / Response File / Compound Archive等の互換性確認へ進みます。Actual x64化は必要なRegression Baselineを段階的に取得した後に開始します。
+PoC 2-C1では、Japanese / Emoji / Supplementary Plane / Combining / NFC / NFDを含むDirect Archive File PathとOutput Directory PathをASCII-only内部Entryの専用Fixtureで分離検証し、Original / Modernの全Path ProbeがPASSしました。Unicodeを含むSource Directory / ZIP File Name / Entry NameでのCompressとRe-extractも双方PASSし、最終Classificationは`MATCH`です。詳細は[PoC 2-C1 Direct Unicode Path Regression Result](docs/design/v1.7.0/regression-encoding-c1.md)を参照してください。
+
+次はPoC 2-C2としてResponse File Encoding / BOM / Newline / Legacy parser behaviorの互換性確認へ進みます。Actual x64化は必要なRegression Baselineを段階的に取得した後に開始します。
 
 ## Development Principles
 

@@ -1,6 +1,6 @@
 # LhaForge v1.7.0 PoC 2-C Encoding / Path Regression Plan
 
-- Status: Planned / pre-execution
+- Status: In progress / PoC 2-C1 complete
 - Baseline: LhaForge v1.6.7 original binary
 - Modern comparison: `develop-v1.7.0` x86 Release
 - Development branch: `develop-v1.7.0`
@@ -10,6 +10,7 @@ Related documents:
 
 - `regression-baseline.md`
 - `regression-archive.md`
+- `regression-encoding-c1.md`
 - `encoding.md`
 - `archive-operations.md`
 - `archive-result-ui.md`
@@ -127,6 +128,18 @@ Long Unicode path within current baseline limits
 - Temp residue
 
 Original / Modernで同一Fixtureを使用する。
+
+Status: **Complete / MATCH (2026-08-13)**
+
+最終RunではASCII / Japanese / Emoji / Supplementary Plane / Combining / NFC / NFDのDirect Path Probe、List / Test、Unicode Compress / Re-extractをOriginal / Modernで比較し、全OperationがPASSした。Final Classificationは`MATCH`で、生成したUnicode roundtrip ZIPのbyte SHA-256も一致した。
+
+Direct Path ProbeはZIP内部EntryをASCII-onlyへ固定し、Archive File NameとOutput Directory Nameだけに対象Unicodeを含めて試験した。`Long Unicode path within current baseline limits`は独立Caseとしては未実施であり、追加のDeep / Long Path境界試験と分離する。
+
+Detailed execution evidence:
+
+- [PoC 2-C1 Direct Unicode Path Regression Result](regression-encoding-c1.md)
+
+次はPoC 2-C2 Response File Encoding / Newlineへ進む。
 
 ---
 
