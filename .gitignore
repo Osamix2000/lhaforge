@@ -83,6 +83,15 @@ ipch/
 /.deps/
 
 # ------------------------------------------------------------
+# Local compatibility samples
+#
+# Archives retained for LhaForge v1.6.7 extraction-failure
+# regression cases. Match .sample regardless of letter case.
+# ------------------------------------------------------------
+
+/.[sS][aA][mM][pP][lL][eE]/
+
+# ------------------------------------------------------------
 # Local PoC / regression evidence
 # ------------------------------------------------------------
 
