@@ -1,9 +1,11 @@
 # PoC 2-C2 Response File Encoding / Newline Regression Result
 
-- Status: **Normal Baseline Complete / MATCH; Abnormal Cases Pending**
-- Executed: 2026-08-13
+- Status: **Complete / Normal MATCH; Abnormal SECURITY_CHANGE_REQUIRED**
+- Normal executed: 2026-08-13
+- Abnormal executed: 2026-08-23
 - Scope: Original LhaForge v1.6.7 vs Modern x86 Release
-- Tested repository HEAD: `ef915cad9913582f42bdd737d33104c4e77dd1b8`
+- Normal tested repository HEAD: `ef915cad9913582f42bdd737d33104c4e77dd1b8`
+- Abnormal tested repository HEAD: `d1e28e1c75399ea8ce6f187d0329e50a9e519c0d`
 - Development branch: `develop-v1.7.0`
 - Fixed backend: `7-ZIP32.DLL` 9.22.0.2 / x86
 - Fixed backend SHA-256: `a82d2b10960f9ebaf5b9d56e2f495c72c22f5de542740d585ab14cb0b291999c`
@@ -21,7 +23,7 @@ Related documents:
 
 PoC 2-C2では、x64化やFilename Decode LayerのProduction実装へ進む前に、Legacy command line parserが持つResponse FileのEncoding / BOM / Newline / parser stateをOriginal v1.6.7とModern x86で比較した。
 
-このResultは**正常系Baseline**を対象とする。Invalid `/cp`、Invalid UTF-8、Invalid / odd-length UTF-16等は正常系から分離し、後続のAbnormal Caseとして扱う。
+このResultは**正常系BaselineとAbnormal Baselineの両方**を記録する。正常系はEncoding / BOM / Newline / parser stateを固定し、Invalid `/cp`、Invalid UTF-8、lone surrogate、odd-length UTF-16は正常系から分離したAbnormal Caseとして後日同一方針で実行した。
 
 C2ではResponse File自体のPathをASCII-onlyへ固定し、C1 Direct Unicode Pathの変数を再混入させない。Response File内で選択されたTarget PathだけにUnicode categoryを含めた。
 
@@ -328,23 +330,210 @@ Local EvidenceはVM / Binary / Local Pathを含むためRepositoryへそのま�
 
 ---
 
-## 11. Decision and next-session resume point
+## 11. Normal baseline decision
 
 PoC 2-C2の**正常系BaselineはComplete / MATCH**とする。
 
-ただしPoC 2-C2全体はまだCompleteとしない。次回は正常系Evidenceを再実行せず、まずAbnormal CaseのExpected behavior / evidence contractを設計し、正常系とは別Evidenceとして実行する。
+正常系EvidenceはRepository HEAD `ef915cad9913582f42bdd737d33104c4e77dd1b8`のHistorical BaselineとしてFreezeし、Abnormal Caseでは正常系を再実行せず、別Fixture / Result / Evidence Directoryへ分離した。
 
-次回対象候補:
+Abnormal Caseでは「Originalと同じなら常に正しい」とは扱わず、Legacy behaviorのうち安全性上維持すべきでないものは`SECURITY_CHANGE_REQUIRED`として分類する方針を採用した。
+
+---
+
+## 12. Abnormal scope and matrix
+
+Abnormal Caseは2026-08-23に次の7 Caseで実行した。
 
 ```text
-invalid /cp
-invalid UTF-8
-malformed UTF-16
-odd-length UTF-16
+invalid-cp-value
+invalid-cp-syntax
+invalid-utf8-at
+invalid-utf8-dollar
+utf16le-lone-surrogate-at
+utf16le-odd-at
+utf16be-odd-at
 ```
 
-Abnormal Caseでは「Originalと同じなら常に正しい」とは扱わず、Crash / Data Loss / path security issueが見つかった場合は`SECURITY_CHANGE_REQUIRED`を含めて分類する。
+最初の5 CaseはSource archaeologyからExpected behaviorを事前固定した`asserted` Case、odd-length UTF-16LE / BEの2 Caseは境界依存挙動を決め打ちしない`observe-only` Caseとした。
 
-Abnormal Case完了後にPoC 2-C2のFinal statusを確定し、その後PoC 2-C3 ZIP Entry Name Metadata / Cross-platform oriented Fixtureへ進む。
+Invalid `/cp` Caseは、valid direct inputをInvalid switchより前へ置き、`ParseCommandLine()`が`PROCESS_INVALID`を返した後に`main()`がEmpty `FileList`を理由としてConfiguration Dialogへ置換する経路を避けた。Response File argumentはInvalid switchより後へ置き、ParserがResponse Fileを読まずに停止することを分離確認した。
 
-PoC 2-C全体はC2 / C3 / C4完了まで`In progress`のままとする。
+Abnormal Fixture / Evidenceは正常系と分離した。
+
+```text
+fixture-response-abnormal
+original\response-abnormal-results
+modern\response-abnormal-results
+evidence-response-abnormal
+```
+
+---
+
+## 13. Abnormal fixed environment and identity
+
+Formal Abnormal VM KitはRepository HEAD `d1e28e1c75399ea8ce6f187d0329e50a9e519c0d`から生成した。
+
+```text
+VM Kit ZIP SHA-256
+00b53a515d08badf6da369fb1f12ba6408396674068c5d150733b3d4dbefb8ab
+
+Windows PowerShell
+5.1.26100.8875 / Desktop
+
+CLR
+4.0.30319.42000
+
+ANSI Code Page
+932
+
+Culture / UICulture
+ja-JP / ja-JP
+
+OS
+Microsoft Windows NT 10.0.26200.0
+```
+
+Target identity:
+
+```text
+Original LhaForge.exe
+SHA-256: 7326c767fe308f03bfb61ac15b9ba97be43385877667e63751e5962d8b2ac846
+Size:    1,001,984 bytes
+PE:      0x014c / x86
+Version: Ver.1.6.7
+
+Modern LhaForge.exe
+SHA-256: 7d3bc5db76618709e7518badb649fcf6b1606567397034265ac330e10837dff7
+Size:    1,049,088 bytes
+PE:      0x014c / x86
+Version: Ver.1.6.7
+
+7-ZIP32.DLL
+SHA-256: a82d2b10960f9ebaf5b9d56e2f495c72c22f5de542740d585ab14cb0b291999c
+Size:    640,512 bytes
+PE:      0x014c / x86
+Version: 9.22.0.2
+```
+
+Initializer / Runner / Capture / Compareは各段階でWindows PowerShell 5.1、ACP932、local fixed disk、ASCII-only Kit Path、Target EXE / DLL identityを再確認した。
+
+---
+
+## 14. Abnormal result
+
+Asserted Case result:
+
+| Case | Original | Modern | Response post-state | Behavior signature |
+| --- | --- | --- | --- | --- |
+| `invalid-cp-value` | expectation MATCH | expectation MATCH | preserved | `7613d4f6c3cebe646add42d3a4b02d07eac1f8d2e3b6880969a9199890a86931` |
+| `invalid-cp-syntax` | expectation MATCH | expectation MATCH | preserved | `7613d4f6c3cebe646add42d3a4b02d07eac1f8d2e3b6880969a9199890a86931` |
+| `invalid-utf8-at` | expectation MATCH | expectation MATCH | preserved | `d1fd1bd0eb0000237a06cd6f64d7e6ecd5a667843d31d8895734663d27ef9411` |
+| `invalid-utf8-dollar` | expectation MATCH | expectation MATCH | deleted | `47bf2df74e6d42fd11b537812ea8ab7e590aaccceb0ff953d82e372c36851205` |
+| `utf16le-lone-surrogate-at` | expectation MATCH | expectation MATCH | preserved | `cc184afecdfacc19d8ccd7e701646ba38395a8808e152a5a2682099e443ebf5a` |
+
+Observe-only result:
+
+| Case | Original signature | Modern signature | Observation |
+| --- | --- | --- | --- |
+| `utf16le-odd-at` | `0d230cb8cfae32b7a17022954c4f47b3c2053e214beec430d2f80bd36e7ed410` | `0d230cb8cfae32b7a17022954c4f47b3c2053e214beec430d2f80bd36e7ed410` | parity; File-not-found Dialogで`A`がPathとして観測された |
+| `utf16be-odd-at` | `9912107e02a75a1f52952554fd71c07a35d201f79cbbcc5e8b2d27a36115b223` | `9912107e02a75a1f52952554fd71c07a35d201f79cbbcc5e8b2d27a36115b223` | parity; endian-swap後の崩れた短いPathが観測された |
+
+全14 Runについて次を確認した。
+
+- Process Exit Code: `0`
+- Timeout: none
+- Crash-like exit: none
+- Generated Archive: none
+- Dialog observation: yes
+- `/@` Response working copy: byte-identical preserved
+- `invalid-utf8-dollar`の`/$`: deleted
+- External AppData / ProgramData state: initializationからunchanged
+- tracked `%TEMP%\zip*.tmp` state: initializationからunchanged
+- Normal C2 fixture / evidence directories: untouched
+
+Invalid UTF-8は`MultiByteToWideChar(CP_UTF8, 0, ...)`経路でConversion Failureとして停止せず、Replacementを含む存在しないPathとして後段Path validationへ到達した。`/@`ではResponse Fileを保持し、`/$`ではResponse read成功直後に削除された後でPath validationが失敗するLegacy lifetime behaviorをOriginal / Modern双方で確認した。
+
+Final Compare:
+
+```text
+[POC2-RSP-ABN] Classification: SECURITY_CHANGE_REQUIRED
+[POC2-RSP-ABN] OBS: Observe-only case utf16le-odd-at: Original signature 0d230cb8cfae32b7a17022954c4f47b3c2053e214beec430d2f80bd36e7ed410; Modern signature 0d230cb8cfae32b7a17022954c4f47b3c2053e214beec430d2f80bd36e7ed410.
+[POC2-RSP-ABN] OBS: Observe-only case utf16be-odd-at: Original signature 9912107e02a75a1f52952554fd71c07a35d201f79cbbcc5e8b2d27a36115b223; Modern signature 9912107e02a75a1f52952554fd71c07a35d201f79cbbcc5e8b2d27a36115b223.
+[POC2-RSP-ABN] OBS: Source-level safety hardening is required for: utf16le-odd-at, utf16be-odd-at.
+```
+
+`comparison.json`は`issueCount: 0`、`caseCount: 7`を記録した。
+
+---
+
+## 15. Security interpretation
+
+`SECURITY_CHANGE_REQUIRED`はModern x86にRegressionが見つかったという意味ではない。
+
+Original / ModernのBehavioral Parityは7 / 7 Caseで成立した。一方、odd-length UTF-16LE / BEではResponse Readerが奇数byte長を事前Rejectせず、Legacy `WCHAR*`解釈 / endian-swap経路へ渡す。実測でもLE / BEで境界依存の短いPath解釈が観測された。
+
+この挙動は**Legacy compatibility requirementとして保存しない**。Production modernizationでは、UTF-16 Response Fileについて少なくとも奇数byte長をConversion前にDeterministicにRejectし、Malformed inputとして明示的に扱うSource-level hardening requirementへ引き継ぐ。
+
+PoC 2-C2の目的はLegacy Baselineの固定であるため、このHardening自体はC2へ混在させない。実装時にはOriginal parityを壊したRegressionではなく、Documented Security ChangeとしてTest Caseを継承する。
+
+---
+
+## 16. Abnormal local evidence and freeze point
+
+Formal Abnormal Runでは次を生成した。
+
+```text
+evidence-response-abnormal\state-before.json
+evidence-response-abnormal\original-result.json
+evidence-response-abnormal\modern-result.json
+evidence-response-abnormal\comparison.json
+original\response-abnormal-results\run-records\...
+modern\response-abnormal-results\run-records\...
+fixture-response-abnormal\...
+```
+
+Canonical Local Evidence Archive:
+
+```text
+poc2-c2-abnormal-evidence-v2.zip
+SHA-256:
+99f0b50d02c7b485e343f60fe0913be2f272f3c8ee26d92436e77d4b374f8f61
+
+Size:
+52,656 bytes
+
+ZIP entries:
+73
+
+Duplicate normalized member paths:
+0
+```
+
+初回Evidence ArchiveはOriginal / Modern双方の`response-abnormal-results`を同じZIP root nameへ格納したためmember pathが重複し、Canonical Freezeには採用しなかった。v2では`original\...` / `modern\...`を明示分離し、payload identityを維持したままduplicate member pathを0にした。
+
+Local EvidenceはVM / Binary / Local Pathを含むためRepositoryへそのままCommitせず、必要なIdentityと結論を本Documentへ転記する。
+
+本Abnormal ResultはRepository HEAD `d1e28e1c75399ea8ce6f187d0329e50a9e519c0d`のHistorical BaselineとしてFreezeする。
+
+---
+
+## 17. Final C2 decision and next stage
+
+PoC 2-C2は次の状態で**Complete**とする。
+
+```text
+Normal:
+  Complete / MATCH
+
+Abnormal:
+  Complete / SECURITY_CHANGE_REQUIRED
+
+Overall PoC 2-C2:
+  Complete
+```
+
+正常系ではModern-only regressionを検出しなかった。AbnormalでもOriginal / Modern parityは成立したが、odd-length UTF-16のLegacy behaviorは互換要件として維持せず、明示的Validationを必要とするDocumented Security Changeとして引き継ぐ。
+
+次はPoC 2-C3 ZIP Entry Name Metadata / Cross-platform oriented Fixtureへ進む。
+
+PoC 2-C全体はC3 / C4完了まで`In progress`のままとする。

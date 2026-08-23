@@ -154,11 +154,11 @@ Status: **Complete for PoC 2-A (UI read + Config save/reload MATCH)**
 
 Source確認の結果、Module-local `LhaForge.ini` / `LFCaldix.ini`を配置したStaged EXEを使用することで、AppData / ProgramData fallbackを避けられる。PoC 2-A first passでは`AskUpdate=0`の隔離Configを使用し、DialogはCancelで閉じる。
 
-手順は[PoC 2-A UI Regression](regression-ui.md)および[Config Save / Reload Regression](regression-config.md)を参照する。Cancel-only UI / Isolationに加え、Clean Windows VMでConfig Save / Reload比較も完了し、Original / ModernのSemantic INI、`LFCaldix.ini`、外部AppData / ProgramData / Registry状態は`MATCH`またはunchangedとなった。PoC 2-B Archive基本操作Regression、PoC 2-C1 Direct Unicode Path Regression、PoC 2-C2 Response File Encoding / Newline正常系Baselineまで`MATCH`で完了している。次はPoC 2-C2 Abnormal Caseへ進む。
+手順は[PoC 2-A UI Regression](regression-ui.md)および[Config Save / Reload Regression](regression-config.md)を参照する。Cancel-only UI / Isolationに加え、Clean Windows VMでConfig Save / Reload比較も完了し、Original / ModernのSemantic INI、`LFCaldix.ini`、外部AppData / ProgramData / Registry状態は`MATCH`またはunchangedとなった。PoC 2-B Archive基本操作Regression、PoC 2-C1 Direct Unicode Path Regression、PoC 2-C2 Response File Regressionまで完了している。C2正常系は`MATCH`、AbnormalはLegacy odd-length UTF-16のHardening requirementを明示した`SECURITY_CHANGE_REQUIRED`で完了した。次はPoC 2-C3へ進む。
 
 ### Layer C: Archive Operations
 
-Status: **PoC 2-B Complete / MATCH; PoC 2-C1 Complete / MATCH; PoC 2-C2 normal Complete / MATCH**
+Status: **PoC 2-B Complete / MATCH; PoC 2-C1 Complete / MATCH; PoC 2-C2 Complete / Normal MATCH + Abnormal SECURITY_CHANGE_REQUIRED**
 
 確認対象:
 
@@ -178,9 +178,11 @@ PoC 2-Bでは`7-ZIP32.DLL` 9.22.0.2のx86 PE / SHA-256をHost準備時とVM初�
 
 PoC 2-C1ではDirect Unicode PathをASCII / Japanese / Emoji / Supplementary Plane / Combining / NFC / NFDで比較し、List / Test / Path Probe / Unicode Compress / Re-extractのOriginal / Modern全CaseがPASSした。最終Classificationは`MATCH`で、C1範囲のModern-only regressionは検出されなかった。具体的Evidenceは[PoC 2-C1 Direct Unicode Path Regression Result](regression-encoding-c1.md)を参照する。
 
-PoC 2-C2正常系ではResponse FileのCP932 / UTF-8 / UTF-16、BOM、CRLF / LF / CR、Command Line途中のEncoding state、`/@`保持 / `/$`削除を11 Caseで比較した。Original / Modernとも11 / 11 PASS、最終Classificationは`MATCH`で、Generated ZIP byte SHA-256も11 / 11 pair一致した。具体的Evidenceは[PoC 2-C2 Response File Encoding / Newline Regression Result](regression-encoding-c2.md)を参照する。
+PoC 2-C2正常系ではResponse FileのCP932 / UTF-8 / UTF-16、BOM、CRLF / LF / CR、Command Line途中のEncoding state、`/@`保持 / `/$`削除を11 Caseで比較した。Original / Modernとも11 / 11 PASS、最終Classificationは`MATCH`で、Generated ZIP byte SHA-256も11 / 11 pair一致した。
 
-C2 Abnormal Case、Legacy ZIP Filename Metadata、Cross-platform oriented Fixture、Compound ArchiveはPoC 2-C2から2-C4で継続する。全体Matrixは[PoC 2-C Encoding / Path Regression Plan](regression-encoding.md)、PoC 2-Bの具体的Evidenceは[PoC 2-B Archive Basic Operation Regression](regression-archive.md)を参照する。
+PoC 2-C2 AbnormalではInvalid `/cp`、Invalid UTF-8、lone surrogate、odd-length UTF-16LE / BEを7 Caseで比較した。asserted 5 CaseはOriginal / ModernともSource-derived expectationへ一致し、observe-only 2 CaseもBehavior signatureが一致した。14 RunすべてでCrash / Timeout / Archive生成 / External State Driftはなく、`/@`保持とInvalid UTF-8 `/$`削除も一致した。一方、odd-length UTF-16はLegacy behaviorを互換要件として維持せず、入力Validationを追加すべきSource-level safety issueとしてClassificationを`SECURITY_CHANGE_REQUIRED`とした。具体的Evidenceは[PoC 2-C2 Response File Encoding / Newline Regression Result](regression-encoding-c2.md)を参照する。
+
+PoC 2-C2はこれでCompleteとする。Legacy ZIP Filename Metadata / Cross-platform oriented Fixture、Compound ArchiveはPoC 2-C3 / 2-C4で継続する。全体Matrixは[PoC 2-C Encoding / Path Regression Plan](regression-encoding.md)、PoC 2-Bの具体的Evidenceは[PoC 2-B Archive Basic Operation Regression](regression-archive.md)を参照する。
 
 ### Layer D: Windows Integration
 

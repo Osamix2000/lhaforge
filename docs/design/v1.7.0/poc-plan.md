@@ -183,15 +183,15 @@ PoC 2-BはComplete。
 
 PoC 2-B開始前のArchitecture checkpointとして、Zstandard / ZSTE方針をADR-0006と`zste-format.md`へ記録した。ZSTE実装自体はPoC 2-Bへ混在させず、Regression Baseline成立後のBuilt-in Backend実装段階で行う。
 
-PoC 2-C Encoding / Path compatibilityへ進み、PoC 2-C1 Direct Unicode Pathは2026-08-13にOriginal / Modern全Case PASS、最終Classification `MATCH`で完了した。PoC 2-C2 Response File Encoding / Newlineの正常系Baselineも同日にOriginal / Modern 11 / 11 PASS、最終Classification `MATCH`で完了した。C2全体はAbnormal Case完了まで`In progress`とする。
+PoC 2-C Encoding / Path compatibilityへ進み、PoC 2-C1 Direct Unicode Pathは2026-08-13にOriginal / Modern全Case PASS、最終Classification `MATCH`で完了した。PoC 2-C2正常系Baselineも同日にOriginal / Modern 11 / 11 PASS、最終Classification `MATCH`で完了した。2026-08-23にC2 Abnormal 7 Caseを分離実行し、asserted 5 CaseはOriginal / ModernともSource-derived expectationへ一致、odd-length UTF-16LE / BEの2 CaseもBehavior signatureが一致した。Legacyの奇数byte長UTF-16処理は互換要件として保存しないためAbnormal Classificationを`SECURITY_CHANGE_REQUIRED`とし、PoC 2-C2全体をCompleteとする。
 
 PoC 2-Cは次のSub-stageへ分ける。
 
 ```text
-PoC 2-C1  Direct Unicode Path                              Complete / MATCH
-PoC 2-C2  Response File Encoding / Newline                 Normal Complete / MATCH; Abnormal Next
-PoC 2-C3  ZIP Entry Name Metadata / Cross-platform oriented Fixture  Planned
-PoC 2-C4  Compound Archive                                      Planned
+PoC 2-C1  Direct Unicode Path                                   Complete / MATCH
+PoC 2-C2  Response File Encoding / Newline / Abnormal              Complete / Normal MATCH; Abnormal SECURITY_CHANGE_REQUIRED
+PoC 2-C3  ZIP Entry Name Metadata / Cross-platform oriented Fixture Planned / Next
+PoC 2-C4  Compound Archive                                         Planned
 ```
 
 主な対象:

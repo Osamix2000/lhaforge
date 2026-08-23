@@ -165,7 +165,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 
 ## Development Status
 
-PoC 1のModern x86 Build、PoC 2-AのUI / Configuration Regression、PoC 2-BのZIP Archive基本操作Regression、PoC 2-C1 Direct Unicode Path Regressionに加え、PoC 2-C2 Response File Encoding / Newlineの正常系Baselineも`MATCH`で完了しました。次はPoC 2-C2 Abnormal Caseへ進む段階です。
+PoC 1のModern x86 Build、PoC 2-AのUI / Configuration Regression、PoC 2-BのZIP Archive基本操作Regression、PoC 2-C1 Direct Unicode Path Regressionに加え、PoC 2-C2 Response File Regressionも完了しました。C2正常系は`MATCH`、AbnormalはOriginal / ModernのBehavioral Parityを確認した上でodd-length UTF-16を`SECURITY_CHANGE_REQUIRED`として固定しています。次はPoC 2-C3 ZIP Entry Name Metadata / Cross-platform oriented Fixtureへ進む段階です。
 
 ```text
 Legacy Baseline              Done
@@ -187,7 +187,7 @@ Design Review                Cycle 2 complete / PoC 2-C in progress
 PoC Plan                     Draft
 Risk Register                Draft
 Build Modernization          PoC 1 complete
-Regression Baseline          PoC 2-A / 2-B / 2-C1 / 2-C2 normal complete; PoC 2-C2 abnormal next
+Regression Baseline          PoC 2-A / 2-B / 2-C1 / 2-C2 complete; PoC 2-C3 next
 Development Environment      Verified
 Dependency Management        BM-002 verified
 x64 Migration                Not started
@@ -219,9 +219,11 @@ PoC 2-Bでは、Original / Modern x86へ同一SHA-256のx86 `7-ZIP32.DLL` 9.22.0
 
 PoC 2-C1では、Japanese / Emoji / Supplementary Plane / Combining / NFC / NFDを含むDirect Archive File PathとOutput Directory PathをASCII-only内部Entryの専用Fixtureで分離検証し、Original / Modernの全Path ProbeがPASSしました。Unicodeを含むSource Directory / ZIP File Name / Entry NameでのCompressとRe-extractも双方PASSし、最終Classificationは`MATCH`です。詳細は[PoC 2-C1 Direct Unicode Path Regression Result](docs/design/v1.7.0/regression-encoding-c1.md)を参照してください。
 
-PoC 2-C2正常系では、CP932、UTF-8 BOMあり / なし、UTF-16LE BOMあり / なし、UTF-16BE BOMあり、CRLF / LF / CR、Command Line途中のEncoding切替、`/@`保持 / `/$`削除を11 Caseで比較しました。Original / Modernとも11 / 11 PASS、最終Classificationは`MATCH`で、Generated ZIP byte SHA-256も11 / 11 pair一致しました。詳細は[PoC 2-C2 Response File Encoding / Newline Regression Result](docs/design/v1.7.0/regression-encoding-c2.md)を参照してください。
+PoC 2-C2正常系では、CP932、UTF-8 BOMあり / なし、UTF-16LE BOMあり / なし、UTF-16BE BOMあり、CRLF / LF / CR、Command Line途中のEncoding切替、`/@`保持 / `/$`削除を11 Caseで比較しました。Original / Modernとも11 / 11 PASS、最終Classificationは`MATCH`で、Generated ZIP byte SHA-256も11 / 11 pair一致しました。
 
-次はPoC 2-C2 Abnormal CaseとしてInvalid `/cp`、Invalid UTF-8、Malformed / odd-length UTF-16等のExpected behaviorとEvidence contractを正常系から分離して固定します。Actual x64化は必要なRegression Baselineを段階的に取得した後に開始します。
+PoC 2-C2 AbnormalではInvalid `/cp`、Invalid UTF-8、lone surrogate、odd-length UTF-16LE / BEを7 Caseで分離検証しました。Source-derived expectationを持つ5 CaseはOriginal / Modernとも一致し、odd-length UTF-16の2 CaseもBehavior signatureが一致しました。Crash / Timeout / External State Driftは検出されませんでしたが、奇数byte長UTF-16をValidationせずLegacy `WCHAR*`処理へ渡す挙動は互換要件として保存せず、最終Classificationを`SECURITY_CHANGE_REQUIRED`としています。詳細は[PoC 2-C2 Response File Encoding / Newline Regression Result](docs/design/v1.7.0/regression-encoding-c2.md)を参照してください。
+
+次はPoC 2-C3 ZIP Entry Name Metadata / Cross-platform oriented Fixtureへ進みます。Actual x64化はPoC 2-C3 / 2-C4を含む必要なRegression Baselineを固定した後に開始します。
 
 ## Development Principles
 

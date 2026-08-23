@@ -1,8 +1,38 @@
 # LhaForge v1.7.0 PoC 2-C2 Response File Abnormal Regression Checklist
 
-Status: Tooling prepared / execution pending
+Status: Executed / Complete / SECURITY_CHANGE_REQUIRED (2026-08-23)
 
 This checklist is separate from the completed PoC 2-C2 normal baseline.
+
+Formal execution identity:
+
+```text
+Repository HEAD:
+d1e28e1c75399ea8ce6f187d0329e50a9e519c0d
+
+VM Kit ZIP SHA-256:
+00b53a515d08badf6da369fb1f12ba6408396674068c5d150733b3d4dbefb8ab
+
+Final classification:
+SECURITY_CHANGE_REQUIRED
+
+Canonical abnormal evidence:
+poc2-c2-abnormal-evidence-v2.zip
+SHA-256:
+99f0b50d02c7b485e343f60fe0913be2f272f3c8ee26d92436e77d4b374f8f61
+```
+
+Formal result summary:
+
+- Original: 7 / 7 run records captured.
+- Modern: 7 / 7 run records captured.
+- First five asserted cases matched the source-derived expectation for both targets.
+- `utf16le-odd-at` Original / Modern behavior signature: `0d230cb8cfae32b7a17022954c4f47b3c2053e214beec430d2f80bd36e7ed410`.
+- `utf16be-odd-at` Original / Modern behavior signature: `9912107e02a75a1f52952554fd71c07a35d201f79cbbcc5e8b2d27a36115b223`.
+- No crash-like exit, timeout, generated archive, external-state drift, or tracked temp-state drift was observed.
+- `SECURITY_CHANGE_REQUIRED` applies to the odd-length UTF-16 source paths; parity is recorded, but the Legacy boundary behavior is not a compatibility requirement.
+- The canonical v2 evidence archive has 73 ZIP entries and 0 duplicate normalized member paths.
+
 
 Do **not** rerun `initialize-response-regression.ps1` for this phase. The abnormal initializer uses separate directories:
 
@@ -183,4 +213,4 @@ evidence-response-abnormal\modern-result.json
 evidence-response-abnormal\comparison.json
 ```
 
-Also retain the first-run per-case records until the abnormal phase is formally documented.
+The 2026-08-23 formal run retained the first-run per-case records and froze them in `poc2-c2-abnormal-evidence-v2.zip` with the SHA-256 recorded above. The earlier archive layout with duplicate `response-abnormal-results` member names is not the canonical freeze artifact.

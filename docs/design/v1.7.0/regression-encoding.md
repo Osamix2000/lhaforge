@@ -1,6 +1,6 @@
 # LhaForge v1.7.0 PoC 2-C Encoding / Path Regression Plan
 
-- Status: In progress / PoC 2-C1 complete / PoC 2-C2 normal complete
+- Status: In progress / PoC 2-C1 complete / PoC 2-C2 complete
 - Baseline: LhaForge v1.6.7 original binary
 - Modern comparison: `develop-v1.7.0` x86 Release
 - Development branch: `develop-v1.7.0`
@@ -140,13 +140,13 @@ Detailed execution evidence:
 
 - [PoC 2-C1 Direct Unicode Path Regression Result](regression-encoding-c1.md)
 
-PoC 2-C2正常系Baselineも2026-08-13に`MATCH`で完了した。C2 Abnormal Caseを正常系から分離して継続する。
+PoC 2-C2正常系Baselineは2026-08-13に`MATCH`で完了し、Abnormal Caseも2026-08-23に分離実行して`SECURITY_CHANGE_REQUIRED`で完了した。次はPoC 2-C3へ進む。
 
 ---
 
 ## 6. PoC 2-C2: Response File
 
-Status: **Normal Baseline Complete / MATCH (2026-08-13); Abnormal Cases Pending**
+Status: **Complete / Normal MATCH (2026-08-13); Abnormal SECURITY_CHANGE_REQUIRED (2026-08-23)**
 
 Legacy command line parserが持つ`/cp:*`と`/@...` / `/$...`をBaselineとして観測する。
 
@@ -204,15 +204,31 @@ dollar-delete-utf8
 - Response File post-state
 - External AppData / ProgramData state
 
-Invalid `/cp`、Invalid UTF-8、Invalid / odd-length UTF-16等は正常系と分離し、Normal MatrixのOriginal / Modern比較完了後にAbnormal Caseとして扱う。
+Invalid `/cp`、Invalid UTF-8、Invalid / odd-length UTF-16等は正常系と分離し、Normal MatrixのOriginal / Modern比較完了後にAbnormal Caseとして扱った。
 
 正常系最終RunではOriginal / Modernとも11 / 11 CaseがPASSし、Final Classificationは`MATCH`となった。`/@` CaseはResponse Fileをbyte-identicalのまま保持し、`/$` Caseは正常読込後に削除された。External AppData / ProgramData stateに差異はなく、Generated ZIP byte SHA-256も11 / 11 pair一致した。
+
+C2 Abnormal Matrix:
+
+```text
+invalid-cp-value
+invalid-cp-syntax
+invalid-utf8-at
+invalid-utf8-dollar
+utf16le-lone-surrogate-at
+utf16le-odd-at
+utf16be-odd-at
+```
+
+Abnormalでは最初の5 CaseをSource-derived expectation付き`asserted`、odd-length UTF-16LE / BEを`observe-only`として実行した。Original / Modernともasserted 5 / 5が期待値へ一致し、observe-only 2 CaseもBehavior signatureが一致した。全14 RunでExit Codeは0、Crash / Timeout / Archive生成はなく、External AppData / ProgramDataおよび追跡対象`%TEMP%\zip*.tmp`にDriftはなかった。Invalid UTF-8はReplacementを含む存在しないPathとして後段Validationへ到達し、`/@`はResponse Fileを保持、`/$`は後段Failureより前にResponse Fileを削除するLegacy behaviorをOriginal / Modern双方で確認した。
+
+odd-length UTF-16LE / BEについてはBehavioral Parity自体は確認できたが、奇数byte長を検証せずLegacy `WCHAR*`処理へ渡す挙動を互換要件として保存しない。Abnormal Final Classificationは`SECURITY_CHANGE_REQUIRED`とし、Production modernization時にodd-length UTF-16を明示的にRejectするSource-level hardening requirementとして引き継ぐ。
 
 Detailed execution evidence:
 
 - [PoC 2-C2 Response File Encoding / Newline Regression Result](regression-encoding-c2.md)
 
-C2全体はAbnormal Case完了まで`In progress`とし、正常系EvidenceはTested HEAD `ef915cad9913582f42bdd737d33104c4e77dd1b8`のHistorical BaselineとしてFreezeする。
+C2全体はCompleteとする。正常系EvidenceはTested HEAD `ef915cad9913582f42bdd737d33104c4e77dd1b8`、Abnormal EvidenceはTested HEAD `d1e28e1c75399ea8ce6f187d0329e50a9e519c0d`のHistorical BaselineとしてそれぞれFreezeし、次はPoC 2-C3へ進む。
 
 ---
 
@@ -455,7 +471,7 @@ Unicode Fixture名はScript Sourceへ直接日本語を埋め込まず、Code Po
 PoC 2-CをCompleteとする最低条件:
 
 1. C1 Direct Unicode Pathの主要CaseをOriginal / Modernで比較済み。
-2. C2 Response Fileの主要Encoding / Newline Caseを比較済み。
+2. C2 Response Fileの主要Encoding / Newline / Abnormal Caseを比較済みで、Legacy behaviorを維持しないSafety DifferenceをDocument化済み。
 3. C3 ZIP Filename MetadataのUTF-8 / CP932 / ambiguous Caseを比較済み。
 4. NFC / NFD等Cross-platform oriented Fixtureを比較済み。
 5. C4 Compound Archiveの固定Backend / Fixtureで主要Operationを比較済み、または明確なBlockerをDocument化済み。
