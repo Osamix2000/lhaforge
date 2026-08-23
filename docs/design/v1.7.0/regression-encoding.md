@@ -92,6 +92,11 @@ Architecture: x86
 
 これはv1.7.xの最終Backend Versionを固定するものではない。
 
+`7-ZIP32.DLL` 9.22.0.2はPoC 2のHistorical Regression Backendであり、v1.7.x Production標準Backendの候補Versionではない。PoC 2-C3 / 2-C4完了後もHistorical Evidenceとして保持する。
+
+ADR-0007の方針により、7-Zip FamilyのProduction標準候補は後続PoC 4で公式Upstream `7z.dll`をLibraryとして直接利用するAdapterを検証する。C3 Fixtureは9.22専用にせず、Raw ZIP MetadataをDeterministicに固定してOfficial `7z.dll`や将来Backendへ同じFixtureを再投入できる設計とする。
+
+
 PoC 2-C4 Compound Archiveで別DLLが必要になる場合は、その段階でVersion / PE Architecture / SHA-256を固定し、ZIP系結果と混在させない。
 
 ---

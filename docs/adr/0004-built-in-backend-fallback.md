@@ -1,12 +1,13 @@
 # ADR-0004: Built-in BackendをFallbackとして持つ
 
-* Status: Accepted
+* Status: Accepted (Global priority refined by ADR-0007)
 * Target: LhaForge v1.7.x
 * Related:
 
   * ADR-0002: v1系外部DLL互換を維持する
   * ADR-0003: x64本体とLegacyHostを採用する
   * ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する
+  * ADR-0007: 公式Upstream優先とFormat別Backend Policyを採用する
 
 ## Context
 
@@ -33,7 +34,7 @@ LhaForge v1.7.xにはBuilt-in Archive Backendを搭載する。
 
 ただし、Built-in Backendはv1系外部DLL文化を置き換えるものではない。
 
-通常の優先順位は次の通りとする。
+本ADR採択時の通常優先順位は次の通りとした。ADR-0007により、現行Designではこの順位を全Formatへ一律適用せず、公式Upstream Managed Backendを標準とするFormat-specific Policyを許容する。
 
 1. x64外部DLL
 2. x86外部DLL + LegacyHost
@@ -342,9 +343,9 @@ v1系外部DLL互換を失い、LhaForge v2に近い設計となる。
 
 ### Built-in Backendを常に最優先する
 
-採用しない。
+全Formatへ一律適用する方式としては採用しない。
 
-v1.xの外部DLL運用を継承する方針に反する。
+ADR-0007により、公式Upstream Libraryを利用するManaged Backendが明確に優位なFormatでは、そのBackendをDefaultに指定できる。7-Zip FamilyのOfficial `7z.dll` Backendが最初の検証対象であり、Integrated Archiver DLL互換自体は維持する。
 
 ## Notes
 
@@ -358,4 +359,4 @@ LhaForge単体としての基本可用性
 
 を両立することである。
 
-将来Backendの品質・安全性・互換性が変化した場合、優先順位については別ADRで再検討できる。
+Backend優先順位はADR-0007で再検討し、Format-specific Default PolicyへRefineした。本ADRの「LhaForge管理下のBackendによる基本可用性を持つ」というDecision自体は維持する。

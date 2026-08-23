@@ -21,6 +21,7 @@
 | LhaForge.ini      | ユーザー設定                 | LhaForge/User     | User configuration             | 上書き禁止    | 保持/移行             | 既定保持 / 明示削除 | High      |
 | LFCaldix.ini      | DLL管理設定                | LhaForge/LFCaldix | Shared compatibility config    | 無条件上書き禁止 | 移行                | 既定保持 / 所有確認後に明示削除 | Confirmed |
 | cldx\             | DLL説明書等                | LFCaldix          | Legacy managed assets          | 保持       | 保持/移行             | 既定保持 / 明示削除 | Confirmed |
+| Official upstream runtime library (例: `7z.dll`) | v1.7.x Managed Backend | Upstream / Installer | Managed third-party runtime | Manifest一致時は修復可 | LhaForge Release時にValidated Versionへ更新 | 削除 | Planned |
 | 外部Archive DLL     | Backend                | LFCaldix/User     | User-serviceable Backend       | 原則上書き禁止  | 保持/評価             | 既定保持 / 明示削除 | High      |
 | b2e32.dll         | Bundled B2E support    | Installer         | Managed                        | 上書き可     | 更新/互換確認           | 削除        | Confirmed |
 | epuninst.exe      | 旧Installer Uninstaller | Installer         | Legacy migration input         | 修復対象外    | 新方式へ移行            | 旧環境時のみ    | High      |

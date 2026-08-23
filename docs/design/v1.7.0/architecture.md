@@ -14,6 +14,7 @@ Related ADR:
 * ADR-0004: Built-in BackendをFallbackとして持つ
 * ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する
 * ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する
+* ADR-0007: 公式Upstream優先とFormat別Backend Policyを採用する
 
 Related design documents:
 
@@ -73,6 +74,7 @@ v1.7.xでは、主に次を実現する。
 
 * LhaForge本体のx64化
 * 現代MSVC / Windows SDKによるBuild
+* 公式Upstream Libraryを優先したManaged Dependency / Backend
 * Unicodeを基本とした内部処理
 * Cross-platform Archive Filename Metadataの安全なDecodeとManual Override
 * DPI・現代Windows UIへの対応
@@ -99,6 +101,7 @@ v1.7.xでは、主に次を実現する。
 * Archive名を安全に利用した展開先Directory生成
 * 不要なFilesystem再ScanやData Copyを避けるOperation Planning
 * 大量File、巨大Archive、異常Archiveを考慮したResource Management
+* Idle / Settings / 通常UIで不要なBackend、Process、Thread、Cacheを常駐させない軽量Runtime
 
 ---
 
@@ -259,20 +262,25 @@ Operation Planner
 
 ## 7. Backend Architecture
 
-基本優先順位:
+ADR-0007以降は、全Formatへ一律のBackend Priorityを適用しない。統合アーカイバDLL互換は第一級Compatibility Backendとして維持しつつ、公式Upstream LibraryをLhaForge管理下で利用するBackendをFormat-specific Defaultへ指定できる。
+
+Selectionの基本順序:
 
 ```text
-1. External x64 Backend
-        ↓ unavailable / unsupported
-
-2. External x86 Backend + LegacyHost
-        ↓ unavailable / unsupported
-
-3. Built-in Backend
-        ↓ unavailable / unsupported
-
-4. Error
+Security / Correctness
+        ↓
+Required Format / Operation / Capability
+        ↓
+Format-specific Default Policy
+        ↓
+Explicit User Preference
+        ↓
+Architecture / Performance Hint
+        ↓
+Error if no usable backend
 ```
+
+7-Zip FamilyのDesign Targetは、PoC 4成立後にOfficial `7z.dll` BackendをDefault / Recommended、`7-ZIP32.DLL`をIntegrated Archiver Legacy / Compatibility Optionとする。
 
 ただし単純にファイルが存在するだけではBackendを利用可能と判定しない。
 
@@ -369,9 +377,9 @@ Archive Data本体をIPCで転送せず、LegacyHost / DLLがFilesystemへ直接
 * ZSTE (`.zste` / `.tar.zste`) のAuthenticated Encryption
 * RAR / RAR5の読み取り・展開
 
-Built-in BackendはExternal DLLを置き換えるものではなくFallbackである。
+Built-in / Managed Backendは統合アーカイバDLL互換を廃止するためのものではない。FormatによってFallbackにもDefaultにもなり得るが、Default指定にはOfficial Upstream、License、Security、Capability、RegressionのValidationを要求する。
 
-Archive Libraryの具体的な採用は別途評価する。Zstandardはlibzstdを前提候補とし、ZSTEはArgon2id v1.3 KDFとXChaCha20-Poly1305 secretstream-compatible authenticated streamを設計Profileとして採用する。KDF実装は明示的な`m` / `t` / `p`を扱えるLibrary、Authenticated Encryption側はlibsodiumを第一候補とし、Version pin / Hash / Licenseは実装開始時にDependency Manifestへ固定する。
+Archive Libraryの具体的な採用は別途評価する。7-Zip Familyでは公式Upstream `7z.dll`を直接利用するFirst-party AdapterをPoC 4の標準候補とし、`7z.exe`を子Processとして呼び出す方式は標準Backendにしない。Zstandardはlibzstdを前提候補とし、ZSTEはArgon2id v1.3 KDFとXChaCha20-Poly1305 secretstream-compatible authenticated streamを設計Profileとして採用する。KDF実装は明示的な`m` / `t` / `p`を扱えるLibrary、Authenticated Encryption側はlibsodiumを第一候補とし、Version pin / Hash / Licenseは実装開始時にDependency Manifestへ固定する。
 
 libarchiveを中心とした構成は他Format向けの有力候補とするが、本Architectureでは全Built-in Formatを単一Libraryへ固定しない。
 
@@ -450,6 +458,7 @@ Legacy Fileの存在場所・Encoding・Migrationルールは別途定義する�
 * Ruleの有効/無効
 * Archive名Directoryへ展開するPolicy
 * 展開先Collision Policy
+* Format単位のBackend Policy / User Override（例: Official 7-Zip / Legacy 7-ZIP32.DLL）
 
 個別Backendの設定形式へ直接依存させず、Backend Adapterが共通設定をCapabilityに応じて実行可能な形式へ変換する。
 
@@ -544,6 +553,8 @@ v1.7.xはv1.6.7の操作性を基準とする。
 独自描画Title Bar等によるWindows標準UIの再実装は原則行わない。
 
 Dark Modeはv1.7.0初期目標から除外するが、将来Themeを追加できないArchitectureにはしない。
+
+UI / SettingsはArchive Operationを行っていない状態で軽量に保つ。設定画面を開くだけで全Backend DLLをLoad / ProbeしたりLegacyHostを起動したりしない。Dialog / Page / large modelは必要時に生成し、閉じた後も不要なPrivate allocation、Handle、Threadを保持し続けない。Exact Memory Budgetは`performance.md`でv1.6.7 / Modern実測後に固定する。
 
 ---
 
@@ -743,6 +754,8 @@ LhaForge\
 
 ## 22. Dependency Rules
 
+Dependency選定はADR-0007のUpstream Firstを基本とする。公式Upstream Stableで要件を満たせる場合はそれを第一候補とし、第三者Forkは公式不足が実証された場合のみ例外候補とする。Library単体の自動更新は行わず、LhaForge Release準備時にLicense / Security / API / Regressionを確認したValidated VersionをPinする。
+
 可能な限り次の依存方向を維持する。
 
 ```text
@@ -846,13 +859,13 @@ Phase 4
 x64 Main Application
 
 Phase 5
-Backend Abstraction
+Backend Abstraction / Official Upstream Adapter
 
 Phase 6
-LegacyHost
+LegacyHost / Integrated Archiver Compatibility
 
 Phase 7
-Built-in Backend
+Built-in / Managed Backend Expansion
 
 Phase 8
 Security / Performance / Logging / Encoding modernization
@@ -875,7 +888,9 @@ UI modernization / Final compatibility work
 * Windows最低対応Version
 * Modern MSVC / Windows SDK Version（方向性は`build-modernization.md`で定義、PoCで最終固定）
 * WTL Version（9.1.5321 Primary / 9.0.4140 Compatibility → 10.xはRegression後に評価）
-* Built-in Backend Library構成
+* Built-in / Managed Backend Library構成
+* Official 7-Zip `7z.dll`初回Pinned Version / Packaging / Adapter API
+* 7-Zip Backend Option UI（Official Default / Legacy Integrated Archiver）
 * Individual External DLL Support Matrix
 * LegacyHost IPC Protocol詳細
 * Final Installation Layout

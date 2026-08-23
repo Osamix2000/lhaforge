@@ -27,7 +27,8 @@ LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をMode
 * 統合アーカイバDLLとの互換性維持
 * LhaForge本体のx64化
 * x86専用Legacy DLLを利用するLegacyHost
-* Built-in Archive BackendによるFallback
+* 公式Upstream Libraryを優先できるManaged / Built-in Archive Backend
+* Built-in Archive BackendによるFallbackと基本可用性
 * Zstandard (`.zst` / `.tar.zst`) のBuilt-in圧縮・展開対応
 * 公開仕様のZSTE (`.zste` / `.tar.zste`) によるAuthenticated Encryption対応
 * Legacy Format対応の維持
@@ -46,26 +47,32 @@ LhaForge v1.xの特徴を可能な限り維持しながら、内部構造をMode
 * 必要な処理だけを昇格する最小権限設計
 * Signed / Unsigned双方を許容するRelease設計
 * SecurityとPerformanceを両立する共通Operation Planning
+* Idle / 設定画面 / 通常UIでは不要なBackend、Process、Thread、Cacheを常駐させない軽量Runtime設計
+* LibraryはLhaForge Release時にOfficial Upstream StableをReviewし、Validated Versionのみ更新・固定
 
 ## Archive Backend
 
-v1.7.xでは、外部アーカイバDLLを正式なBackendとして維持します。
+v1.7.xでは、統合アーカイバDLL互換を正式に維持しながら、Formatごとに公式Upstream Libraryを利用するManaged / Built-in Backendを標準経路として採用できるArchitectureへModernizeします。Backendの一律順位ではなく、Security / Required Capability / Format-specific Policy / User Preferenceの順で選択します。
 
-基本的なBackend選択方針:
+7-Zip Familyの設計Targetは次の通りです。
 
 ```text
-External x64 DLL
-        ↓
-External x86 DLL + LegacyHost
-        ↓
-Built-in Backend
-        ↓
-Error
+Default / Recommended
+    Official 7-Zip Library Backend
+    └─ official 7z.dll
+
+Legacy / Compatibility
+    Integrated Archiver DLL Backend
+    └─ 7-ZIP32.DLL
 ```
 
-Built-in Backendは外部DLL方式を廃止するためのものではなく、External Backendが利用できない場合のFallbackおよび基本可用性確保を目的とします。
+公式`7z.dll`は`7z.exe`を子Processとして呼び出すのではなく、LhaForge側のAdapterからLibrary APIを直接利用する方針です。PoC 4でLicense / API / Security / Regressionを検証し、通過したOfficial Stable VersionをProduction候補としてPinします。
 
-PoC 2-Bで固定使用した`7-ZIP32.DLL` 9.22.0.2は、v1.6.7互換性を測定するためのHistorical Regression Backendです。v1.7.xの最終実装をこのVersionへ固定する意図はなく、Current External Backend、x86 Legacy DLL + LegacyHost、Built-in BackendはRegression Baselineを維持した上で別段階としてModernizeします。
+`7-ZIP32.DLL`を含む統合アーカイバDLL、LFCaldix、`cldx`はv1系Compatibilityとして維持します。7-Zip FamilyではOptionからLegacy方式を選択できる設計とし、通常時に未使用BackendをLoadしたりx86 LegacyHostを起動したりしません。
+
+PoC 2-Bから2-C4で固定使用する`7-ZIP32.DLL` 9.22.0.2は、v1.6.7互換性を測定するHistorical Regression Backendです。Productionを9.22.0.2へ固定する意図はなく、PoC 2-C3 / 2-C4完了後もHistorical Evidenceとして保持します。
+
+Managed DependencyはLibrary単体で自動更新しません。LhaForge Release準備時にOfficial Upstream Stableを確認し、License / Security / API / Regression Gateを通過した場合のみLhaForgeと合わせて更新し、Version / SHA-256を固定します。詳細はADR-0007と[Dependency Management](docs/design/v1.7.0/dependencies.md)を参照してください。
 
 ## Zstandard / ZSTE
 
@@ -162,6 +169,7 @@ v1.7.xでは、特に次のLegacy Compatibilityを重視します。
 * [ADR-0004: Built-in BackendをFallbackとして持つ](docs/adr/0004-built-in-backend-fallback.md)
 * [ADR-0005: 署名可能なRelease Architectureと最小権限設計を採用する](docs/adr/0005-signing-capable-release-and-least-privilege.md)
 * [ADR-0006: 公開ZSTE FormatとAuthenticated Encryptionを採用する](docs/adr/0006-public-zste-format-and-crypto.md)
+* [ADR-0007: 公式Upstream優先とFormat別Backend Policyを採用する](docs/adr/0007-upstream-first-and-backend-defaults.md)
 
 ## Development Status
 
@@ -170,7 +178,7 @@ PoC 1のModern x86 Build、PoC 2-AのUI / Configuration Regression、PoC 2-BのZ
 ```text
 Legacy Baseline              Done
 Source Verification          Done
-Architecture Decisions       In progress (ADR-0001 - 0006)
+Architecture Decisions       In progress (ADR-0001 - 0007)
 Ownership Design             Draft
 Overall Architecture         Draft
 Archive Operation Design     Draft

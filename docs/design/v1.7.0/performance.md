@@ -2,7 +2,7 @@
 
 * Status: Draft
 * Target: LhaForge v1.7.x
-* Scope: Archive Operation / Backend Selection / LegacyHost / UI / File Enumeration
+* Scope: Archive Operation / Backend Selection / LegacyHost / UI / Settings / Idle Runtime / File Enumeration
 
 ## 1. Principle
 
@@ -49,6 +49,36 @@ Backend
 * UI表示用ModelとBackend用Dataの重複削減
 
 ただしLifetimeやThread Safetyを犠牲にしない。
+
+### 4.1 Idle / UI Lightweight Policy
+
+Archive圧縮・展開中のMemory UsageはBackend / Codec / Input Size / Threading等のOperation条件へ依存するため別途Budgetする。一方、Archive Operationを行っていない通常Runtimeでは、v1系の軽快さを継承し、不要なResourceを常駐させないことを明示的なGoalとする。
+
+対象Scenario:
+
+```text
+Cold start
+Idle
+Settings open
+Settings close
+Archive list open / close
+Operation completed -> Idle
+```
+
+原則:
+
+* Archive Backend DLLは必要になるまでLoadしない
+* x86 LegacyHostはLegacy x86 Backendを実際に利用するまで起動しない
+* 設定画面を開くだけで全BackendをLoad / Probeしない
+* Backend / Dependency更新確認の常駐ThreadやBackground Pollingを設けない
+* 設定Page / Dialog / large modelは必要時に生成し、不要後にReleaseする
+* Cacheはbounded / invalidatableとし、無制限成長させない
+* Operation固有Buffer / Entry Metadata / temporary objectを処理完了後に保持し続けない
+* Timer / Watcher / Worker Threadを常時起動する場合は明確な必要性と計測Evidenceを要求する
+
+Working SetはWindowsのPaging / File Cache等で変動するため、見かけ上のWorking Setを強制Trimすること自体を最適化Goalにしない。Private Bytes / Private Commit、Handle、Thread、Module、GDI / USER Object等も合わせて計測し、実際に不要なAllocation / Lifetimeを減らす。
+
+Exact numeric budgetは現時点で固定せず、v1.6.7 BaselineとModern x86 / x64実測後に設定する。最低条件として、Settings open/closeやOperation反復でPrivate allocation / Handle / Threadが無制限に増加しないことを要求する。
 
 ## 5. LegacyHost IPC
 
@@ -118,6 +148,9 @@ Build Modernization後、少なくとも次のBenchmarkを作成する。
 * External x64 Backend
 * Built-in Backend
 * Archive list表示
+* Cold start / Idle
+* Settings open / close / repeated open-close
+* Operation完了後のIdle回復
 
 v1.6.7実動環境を可能な範囲でReferenceとして比較する。
 
@@ -128,6 +161,12 @@ v1.6.7実動環境を可能な範囲でReferenceとして比較する。
 * Wall-clock time
 * CPU time
 * Peak working set
+* Private Bytes / Private Commit
+* Idle working set / private memory
+* Handle count
+* Thread count
+* Loaded module count
+* GDI / USER object count where applicable
 * Disk read / write量
 * Temp disk usage
 * Entry throughput
@@ -189,3 +228,5 @@ Zstd v1.5.7 Release Noteでは`enwik9`の例で`--max`が`--ultra -22`より高�
 * Zstd `--max`相当PresetのPinned Version追従方式
 * File Enumeration API
 * Long path handlingによるPerformance影響
+* v1.6.7 / Modern x86 / x64のIdle・Settings Memory baseline
+* Settings close / Operation完了後のResource return threshold

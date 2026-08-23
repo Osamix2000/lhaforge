@@ -52,6 +52,9 @@ Low
 | R-031 | High | Extraction Filter要求時にBackendがEntryを再列挙 / 全展開 | `.DS_Store`等の不要File出力、Security / Privacy / Cleanup問題 | `SelectiveExtract` / `ExactOutputSet` Capability、別Backend、Unsupported明示、安全なStaging Policy |
 | R-032 | Medium | Archive Result / Error原因を過剰推定 | Userへ誤原因表示、Support誤誘導、問題切り分け悪化 | Stable Error Code、Raw Backend Log保持、`UnknownFailure` / Unknown Reasonを正式化 |
 | R-033 | Medium | Huge Result / Raw LogでError UIが巨大化・重くなる | Error確認不能、Memory / UI responsiveness低下 | Summary First、Virtual List、Scroll、Work Area基準Size、Minimum Size、Resize / Maximize |
+| R-034 | High | Managed Runtime Libraryを無検証で最新版へ更新 | API/ABI break、Regression、脆弱Version混入、Release不安定化 | Release-coupled update、Official Upstream、Version/SHA pin、License/Security/Regression Gate |
+| R-035 | Medium | 第三者Fork / 改良版を安易にProduction Dependencyへ採用 | Supply-chain増加、License追跡複雑化、Maintenance停止 | Upstream First、公式不足時だけ例外採用、差分Audit / reproducible build / Exit条件 |
+| R-036 | Medium | Backend / Settings / Watcherを常時LoadしてIdle Memory・Thread数が増加 | v1系の軽快さ低下、常駐Memory増加、Handle/Thread leak | Lazy load、no background dependency polling、bounded cache、Idle/Settings resource benchmark |
 
 ---
 
@@ -113,6 +116,9 @@ R-030
 R-031
 R-032
 R-033
+R-034
+R-035
+R-036
 ```
 
 Support Format数を増やす前に、少数FamilyでCommon Backend Modelが成立することを優先する。

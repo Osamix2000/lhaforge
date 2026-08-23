@@ -4,7 +4,7 @@
 - Target: LhaForge v1.7.x
 - Baseline: LhaForge v1.6.7
 - Current implemented scope: Build-time WTL dependency
-- Planned scope: Built-in Archive / ZSTE runtime dependencies
+- Planned scope: Official Upstream Archive / Built-in Archive / ZSTE runtime dependencies
 
 ## 1. Purpose
 
@@ -13,7 +13,38 @@ v1.7.xでは、Build Dependencyを特定PCの手作業配置に依存させず�
 
 このDocumentはBM-002のDependency Restore方針を定義する。
 
-## 2. Historical evidence and WTL version ambiguity
+
+## 2. Upstream-first and release-coupled update policy
+
+Runtime / Build Dependencyは、必要な機能を公式Upstreamが満たせる場合、公式UpstreamのStable Releaseを第一候補とする。第三者Fork / 改良版は、公式Upstreamでは満たせない具体的要件が確認された場合だけ例外候補とする。
+
+Library単体の自動更新は行わない。LhaForge Release準備時に各Managed Dependencyの最新Stable Candidateを確認し、次を通過した場合のみLhaForge Releaseと合わせて更新する。
+
+1. Official upstream / provenance確認
+2. Release note / security issue確認
+3. License / redistribution確認
+4. API / ABI / compiler compatibility確認
+5. Upstream test / LhaForge regression / malformed input test
+6. Performance / Memory regression確認
+7. Version / SHA-256 / Source URL / Notice固定
+
+問題または未解決Riskがある場合は、直前のValidated Versionを維持する。採用対象は単なるLatestではなく`Latest Validated Stable`とする。
+
+Third-party Forkを例外採用する場合は、Upstreamとの差分、採用理由、Source audit、Build reproducibility、License、Security / Regression結果、Upstreamへ戻すExit条件をDocument化する。
+
+このPolicyはADR-0007でArchitecture Decisionとして固定する。
+
+### Official 7-Zip direction
+
+7-Zip Familyでは、PoC 4で7-Zip公式Upstreamの`7z.dll`を直接利用する`Official7ZipBackend`を検証する。`7z.exe`を子Processとして呼び出す方式は標準Backend候補としない。
+
+Production VersionはPoC 4開始時にOfficial Stable Candidateを上記Gateへ通した後でPinする。PoC 2-B / 2-Cで利用している`7-ZIP32.DLL` 9.22.0.2はHistorical Regression Backendであり、Production Dependency Versionではない。
+
+`7-zip32_ungarbled`等の第三者改良版は有用なReference / Comparison対象になり得るが、公式`7z.dll`で要件を満たせる限りProduction Dependencyへ優先採用しない。
+
+---
+
+## 3. Historical evidence and WTL version ambiguity
 
 公式v1.6.7 Source Treeには、WTL Versionについて2種類のEvidenceが存在する。
 
@@ -38,7 +69,7 @@ WTL Include = C:\Dev\vc2013\WTL90_4140_Final\Include
 
 一方、Project Fileの固定PathはWTL 9.0.4140を示しているため、9.0.4140もCompatibility Profileとして保持し、必要に応じてA/B Buildできるようにする。
 
-## 3. Pinned packages
+## 4. Pinned packages
 
 Primary:
 
@@ -56,7 +87,7 @@ SHA-256: 3a4aa60e4c83d88a17b69852db22fbaf8caa4dccb083528d419c82801b686813
 
 Version、Archive Name、SHA-256、取得先は`dependencies/wtl.json`で管理する。
 
-## 4. Source policy
+## 5. Source policy
 
 WTL Archive自体はRepositoryへCommitしない。
 
@@ -71,7 +102,7 @@ RestoreはOfficial SourceForge配布物を使用し、SHA-256がManifestと一�
 
 Downloadできない環境では、UserがOfficial Archiveを別途取得し、`-ArchivePath`で渡せる。
 
-## 5. Local layout
+## 6. Local layout
 
 Restore先:
 
@@ -94,7 +125,7 @@ BM-003で`LhaForge.vcxproj`からこのProperty SheetをImportし、Machine固�
 
 `build/dependencies.props`はWTL Include Directoryを`AdditionalIncludeDirectories`へ追加し、`atlapp.h`が存在しない場合はBuild開始前に明示的なErrorを出す。Build中にNetwork Restoreは実行しない。
 
-## 6. Restore command
+## 7. Restore command
 
 Default Primary Profile:
 
@@ -120,7 +151,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\restore-wtl.ps1 -Arc
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\restore-wtl.ps1 -Force
 ```
 
-## 7. Security requirements
+## 8. Security requirements
 
 Dependency Bootstrapは次を必須とする。
 
@@ -135,7 +166,7 @@ Dependency Bootstrapは次を必須とする。
 BuildそのものがDependency Downloadを行う設計にはしない。
 Restoreは明示的なBootstrap Stepとする。
 
-## 8. Reproducibility
+## 9. Reproducibility
 
 同じRepository Revisionと同じ`dependencies/wtl.json`から、同一SHA-256のWTL PackageをRestoreできることをReproducible Buildの前提とする。
 
@@ -143,9 +174,9 @@ Network Sourceが将来消失した場合は、License確認後にProject-contro
 
 Packageを変更する場合は、VersionとHashの変更を同一CommitでReviewする。
 
-## 9. Verification
+## 10. Verification
 
-### 9.1 ATLとWTLのHeader境界
+### 10.1 ATLとWTLのHeader境界
 
 ATLとWTLのHeaderをDependency検証で混同しない。
 
@@ -173,7 +204,7 @@ atlres.h
 
 WTL Restoreは上記WTL固有HeaderがRestore先の`Include`に存在することを検証する。
 
-### 9.2 Environment Gate
+### 10.2 Environment Gate
 
 BM-002以降、`tools/verify-vs-environment.ps1`はVisual Studio / MSVC / SDK / ATLに加えてDefault WTL Profileも確認する。
 
@@ -188,15 +219,32 @@ Windows SDK 26100 family
 WTL 9.1.5321 restored
 ```
 
-## 10. WTL 10.x
+## 11. WTL 10.x
 
 WTL 10.xへの更新はBM-002に含めない。
 
 PoC 1 / Regression Baseline成立後に、独立CommitでCompile、UI Behavior、DPI、Message Map等を比較する。
 
-## 11. Planned Built-in Backend / ZSTE dependencies
+## 12. Planned Official Upstream / Built-in Backend / ZSTE dependencies
 
-PoC 1ではWTLだけを実際にRestore / Pinしている。Zstandard / ZSTE実装時には、同じManifest / Hash Verification方針へ次のRuntime Dependencyを追加する方向とする。
+PoC 1ではWTLだけを実際にRestore / Pinしている。PoC 4以降のOfficial 7-ZipおよびZstandard / ZSTE実装時には、同じManifest / Hash Verification方針へRuntime Dependencyを追加する。
+
+
+### Official 7-Zip
+
+Design direction:
+
+```text
+7-Zip official upstream
+Artifact: 7z.dll
+Purpose:
+  ZIP / 7z等を扱うManaged 7-Zip Backend
+  LhaForgeからLibrary APIを直接利用
+```
+
+具体Version / SHA-256はPoC 4開始時にPinする。公式Upstream Libraryを優先し、`7z.exe`を標準Backendとして起動する設計にはしない。
+
+`7-ZIP32.DLL`はこのManaged Dependencyへ置換して削除するのではなく、Integrated Archiver Compatibility / Legacy Optionとして別Ownershipで維持する。
 
 ### Zstandard
 
@@ -264,11 +312,12 @@ ZSTE Format Specificationそのものをlibsodium API名だけで定義しない
 
 ---
 
-## 12. Open items
+## 13. Open items
 
 - Primary WTL 9.1.5321とCompatibility WTL 9.0.4140のBuild差分
 - Public Release時に必要なWTL License / Noticeの最終確認
 - CIでDependency Cacheをどう扱うか
-- Built-in Backend dependencyをWTLと同じManifest思想へ統合する具体的なFile Layout
+- Official Upstream / Built-in Backend dependencyをWTLと同じManifest思想へ統合する具体的なFile Layout
+- Official 7-Zip `7z.dll`の初回Pinned Version / SHA-256 / License notice / Packaging layout
 - libzstd / Argon2 implementation / libsodiumの初回Pinned VersionとSHA-256
 - Static / dynamic link方針とRelease Notice

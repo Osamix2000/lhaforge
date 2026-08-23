@@ -211,6 +211,8 @@ PoC 2-C4  Compound Archive                                         Planned
 
 PoC 2-Cでは新しいManual Encoding Override、Extraction Preview、Extraction Filter、Archive Result UIをまだProduction実装しない。Original v1.6.7とModern x86の現在Behaviorを先に固定する。
 
+PoC 2-C3 / 2-C4はBaseline continuityのため`7-ZIP32.DLL` 9.22.0.2をHistorical Regression Backendとして継続使用する。C3で作成するDeterministic ZIP Metadata FixtureはBackend-independent Evidenceとして保存し、PoC 4のOfficial `7z.dll` Backendでも再利用する。
+
 詳細:
 
 - [Regression Baseline](regression-baseline.md)
@@ -249,29 +251,38 @@ Output:
 
 ---
 
-## 6. PoC 4: External x64 Backend
+## 6. PoC 4: Official 7-Zip x64 Backend
 
 目的:
 
-x64 Main ApplicationからExternal x64 Archive DLLを安全に利用できることを検証する。
+x64 Main Applicationから、7-Zip公式Upstreamの`7z.dll`をLibraryとして直接利用するManaged Backendが成立することを検証する。
 
-最初は1 Familyに限定する。
+`7z.exe`を子Processとして呼び出す方式はこのPoCの対象としない。最初はOfficial 7-Zip Familyに限定する。
+
+開始時に、当時のOfficial Stable CandidateについてVersion、取得元、SHA-256、License / notice、Security / Release Noteを固定する。Library単体の自動更新は行わず、LhaForge Release単位でValidated Versionを更新する。
 
 確認:
 
-- discovery
+- official upstream provenance / license
 - PE architecture
-- absolute-path load
-- export / version probe
+- safe absolute-path load
+- native API / interface version probe
 - list
+- test
 - extract
-- error
+- create where PoC scope permits
+- password / progress / cancel boundary
+- Unicode / filename metadata
+- error mapping
 - unload / lifetime
+- Idle時に未使用`7z.dll`を不要Loadしないこと
 
 Output:
 
-- first x64 adapter
+- `Official7ZipBackend` first x64 adapter
 - capability probe contract
+- pinned Official 7-Zip dependency evidence
+- PoC 2-C3 Fixture再利用によるHistorical vs Official behavior comparison
 
 ---
 
@@ -351,7 +362,7 @@ Common Backend Interface上でExternal DLLに依存しないBackendが成立す�
 - performance
 - maintenance activity
 
-Library最終決定は実測とLicense review後に行う。
+Library最終決定はUpstream Firstを原則とし、実測とLicense / Security review後に行う。第三者Forkは公式Upstreamでは要件を満たせない場合だけ例外候補とする。
 
 ---
 
