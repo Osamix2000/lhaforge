@@ -27,6 +27,7 @@ $expectedSevenZipSha256 = 'a82d2b10960f9ebaf5b9d56e2f495c72c22f5de542740d585ab14
 
 . (Join-Path $vmScriptRoot 'common.ps1')
 . (Join-Path $vmScriptRoot 'response-common.ps1')
+. (Join-Path $vmScriptRoot 'abnormal-response-common.ps1')
 
 $preparePsVersion = [version]$PSVersionTable.PSVersion
 if (
@@ -38,7 +39,8 @@ if (
 }
 
 Assert-Poc2C2EncodingByteGenerator
-Write-Host '[POC2-ENC] C2 encoding byte generator smoke test passed.'
+Assert-Poc2C2AbnormalByteGenerator
+Write-Host '[POC2-ENC] C2 normal/abnormal byte generator smoke tests passed.'
 
 function Write-Utf16File {
     param(
@@ -130,6 +132,14 @@ if (-not (Test-Path -LiteralPath $buildScript -PathType Leaf)) {
     throw ('Build helper was not found: {0}' -f $buildScript)
 }
 
+$repoStatus = @(& git -C $repoRoot status --porcelain)
+if ($LASTEXITCODE -ne 0) {
+    throw 'Could not read repository working-tree status.'
+}
+if ($repoStatus.Count -ne 0) {
+    throw 'PoC 2-C VM kit generation requires a clean repository working tree. Commit or intentionally discard all changes before generating the formal VM kit.'
+}
+
 $sourceDllEvidence = Get-FileEvidence -Path $SevenZipDll
 if ($sourceDllEvidence.peMachine -ne '0x014c') {
     throw ('7-ZIP32.DLL is not Win32/x86: {0}' -f $SevenZipDll)
@@ -180,6 +190,7 @@ New-Item -ItemType Directory -Path $kitScriptRoot -Force | Out-Null
 foreach ($name in @(
     'common.ps1',
     'response-common.ps1',
+    'abnormal-response-common.ps1',
     'initialize-encoding-regression.ps1',
     'run-encoding-case.ps1',
     'capture-encoding-result.ps1',
@@ -187,12 +198,17 @@ foreach ($name in @(
     'initialize-response-regression.ps1',
     'run-response-case.ps1',
     'capture-response-result.ps1',
-    'compare-response-results.ps1'
+    'compare-response-results.ps1',
+    'initialize-response-abnormal-regression.ps1',
+    'run-response-abnormal-case.ps1',
+    'capture-response-abnormal-result.ps1',
+    'compare-response-abnormal-results.ps1'
 )) {
     Copy-Item -LiteralPath (Join-Path $vmScriptRoot $name) -Destination (Join-Path $kitScriptRoot $name) -Force
 }
 Copy-Item -LiteralPath (Join-Path $vmScriptRoot 'CHECKLIST.md') -Destination (Join-Path $kitRoot 'CHECKLIST.md') -Force
 Copy-Item -LiteralPath (Join-Path $vmScriptRoot 'RESPONSE-CHECKLIST.md') -Destination (Join-Path $kitRoot 'RESPONSE-CHECKLIST.md') -Force
+Copy-Item -LiteralPath (Join-Path $vmScriptRoot 'RESPONSE-ABNORMAL-CHECKLIST.md') -Destination (Join-Path $kitRoot 'RESPONSE-ABNORMAL-CHECKLIST.md') -Force
 
 $repoHead = (& git -C $repoRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoHead)) {
@@ -215,10 +231,21 @@ foreach ($case in Get-Poc2C2Cases) {
     }
 }
 
+$responseAbnormalCaseManifest = @()
+foreach ($case in Get-Poc2C2AbnormalCases) {
+    $responseAbnormalCaseManifest += [ordered]@{
+        id = $case.id
+        fixtureKind = $case.fixtureKind
+        argumentPlan = @($case.argumentPlan)
+        expectationMode = $case.expectation.mode
+        highRisk = [bool]$case.expectation.highRisk
+    }
+}
+
 $manifest = [ordered]@{
     schemaVersion = 1
     preparedUtc = [DateTime]::UtcNow.ToString('o')
-    purpose = 'PoC 2-C encoding and path regression VM kit (C1 + C2 tooling)'
+    purpose = 'PoC 2-C encoding and path regression VM kit (C1 + C2 normal + C2 abnormal tooling)'
     repoHead = $repoHead
     modernConfiguration = $ModernConfiguration
     original = $original
@@ -226,9 +253,10 @@ $manifest = [ordered]@{
     fixedBackend = $sourceDllEvidence
     cases = @($caseManifest)
     responseCases = @($responseCaseManifest)
-    fixtureGeneration = 'Generated inside the VM from ASCII-only PowerShell code points.'
+    responseAbnormalCases = @($responseAbnormalCaseManifest)
+    fixtureGeneration = 'Generated inside the VM from ASCII-only PowerShell code points/raw byte builders.'
 }
-Write-JsonUtf8NoBom -Value $manifest -Path (Join-Path $kitRoot 'manifest.json') -Depth 18
+Write-JsonUtf8NoBom -Value $manifest -Path (Join-Path $kitRoot 'manifest.json') -Depth 20
 
 if (Test-Path -LiteralPath $zipPath) {
     Remove-Item -LiteralPath $zipPath -Force
@@ -250,5 +278,6 @@ Write-Host ('  PE      : {0} ({1})' -f $sourceDllEvidence.peMachine, $sourceDllE
 Write-Host ('  SHA-256 : {0}' -f $sourceDllEvidence.sha256)
 Write-Host ''
 Write-Host '[POC2-ENC] The VM kit contains ASCII paths only.'
-Write-Host '[POC2-ENC] Unicode fixture names and C2 response content are generated inside the VM from code points.'
-Write-Host '[POC2-ENC] Copy the ZIP to the Windows VM local fixed disk, extract it, and read CHECKLIST.md / RESPONSE-CHECKLIST.md.'
+Write-Host '[POC2-ENC] Unicode fixture names and C2 normal response content are generated inside the VM from code points.'
+Write-Host '[POC2-ENC] C2 abnormal response files are generated inside the VM from explicit raw byte builders.'
+Write-Host '[POC2-ENC] Copy the ZIP to the Windows VM local fixed disk, extract it, and read CHECKLIST.md / RESPONSE-CHECKLIST.md / RESPONSE-ABNORMAL-CHECKLIST.md.'
