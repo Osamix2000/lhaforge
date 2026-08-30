@@ -43,7 +43,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-c3-target.ps1 
 
 Listは表示候補を番号または`m/e/o`で記録する。Unicode文字をConsoleへ手入力しない。
 
-Test / ExtractもScriptのPromptへ回答する。
+Test / ExtractもScriptのPromptへ回答する。Error / Warning / Otherを選んだ場合は、必要に応じて表示内容をObservation Noteへ残す。
+
+各Operation後にAppData / ProgramDataのBaseline差分を確認する。Unexpected mutationを検出した場合は、そのOperationのRun Recordを保存した上で停止する。
 
 Crash、Unexpected external mutation、Wrong-directory extraction、Security-relevant behaviorがあれば停止する。
 
@@ -73,11 +75,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\compare-c3-results
 
 `MATCH`ならBehavioral parity。
 
-`REGRESSION`はOriginal / Modern差異を検出。
+`REGRESSION`は`spec-valid`または`cross-platform-observe`でOriginal / Modern差異を検出した状態。
 
-`UNKNOWN`はvalid Fixture failure、manual `other`、または自動判定できない結果がある状態。
+`legacy-observe` / `metadata-observe` / `conflict-observe` / `malformed-observe`でOriginal / Modern差異が出た場合は、自動的にRegressionと断定せず`UNKNOWN`としてReviewへ送る。
 
-Malformed / Conflict CaseがOriginal / ModernでMATCHしていても、そのBehaviorをProduction Compatibility Requirementとして保存するとは限らない。Security / Correctness上の扱いはEvidence確認後に別途Classificationする。
+`UNKNOWN`は上記Review対象、valid Fixture failure、manual `other`、または自動判定できない結果がある状態。
+
+Malformed / Conflict CaseがOriginal / ModernでMATCHしていても、そのBehaviorをProduction Compatibility Requirementとして保存するとは限らない。`EXPECTED_DIFFERENCE` / `SECURITY_CHANGE_REQUIRED`を含む最終ClassificationはEvidence確認後にDocument側で決定する。
 
 ## 5. Evidence
 

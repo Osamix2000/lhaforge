@@ -146,6 +146,38 @@ if ($parseIssues.Count -ne 0) {
     throw ('PowerShell parser validation failed:`n  ' + ($parseIssues -join "`n  "))
 }
 
+# Exercise C3 helper functions on the Host without launching LhaForge.
+. (Join-Path $KitRoot 'scripts\common.ps1')
+. (Join-Path $KitRoot 'scripts\c3-common.ps1')
+
+[byte[]]$emptyBytes = Convert-C3HexToBytes -Hex ''
+if ($emptyBytes.Length -ne 0) {
+    throw 'C3 helper empty hex conversion smoke test failed.'
+}
+
+$badUtf8 = Get-C3StrictUtf8 -Bytes ([byte[]]@(0xE3, 0x28, 0xA1))
+if ([bool]$badUtf8.valid) {
+    throw 'C3 helper strict UTF-8 rejection smoke test failed.'
+}
+
+$asciiCase = @($fixtureManifest.cases | Where-Object { [string]$_.id -ceq 'ascii' })[0]
+$asciiCandidates = @(Get-C3NameCandidates -FixtureCase $asciiCase)
+if ($asciiCandidates.Count -ne 1 -or [string]$asciiCandidates[0].text -cne 'ascii.txt') {
+    throw 'C3 helper ASCII candidate smoke test failed.'
+}
+
+$conflictCase = @($fixtureManifest.cases | Where-Object { [string]$_.id -ceq 'cp932-upath-conflict' })[0]
+$conflictCandidates = @(Get-C3NameCandidates -FixtureCase $conflictCase)
+if ($conflictCandidates.Count -lt 2) {
+    throw 'C3 helper conflict candidate smoke test failed.'
+}
+
+$macCase = @($fixtureManifest.cases | Where-Object { [string]$_.id -ceq 'macos-metadata' })[0]
+$macExpected = Get-C3ExpectedSemanticInventory -FixtureCase $macCase
+if ($null -eq $macExpected -or @($macExpected.entries).Count -ne 4) {
+    throw 'C3 helper macOS semantic inventory smoke test failed.'
+}
+
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -189,4 +221,5 @@ Write-Host ('[POC2-C3] ZIP      : {0}' -f $ZipPath)
 Write-Host ('[POC2-C3] ZIP SHA  : {0}' -f $zipHash)
 Write-Host '[POC2-C3] Fixtures : 15 / 15'
 Write-Host '[POC2-C3] PS parser: PASS'
+Write-Host '[POC2-C3] Runtime helpers: PASS'
 Write-Host '[POC2-C3] ZIP paths: duplicate=0 / unsafe=0'

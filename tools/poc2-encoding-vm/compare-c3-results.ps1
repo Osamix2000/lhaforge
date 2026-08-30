@@ -42,8 +42,23 @@ $modern = Read-JsonUtf8 -Path $modernPath
 
 $issues = New-Object System.Collections.Generic.List[string]
 $observations = New-Object System.Collections.Generic.List[string]
-$modernOnlyDifferences = New-Object System.Collections.Generic.List[string]
+$regressionDifferences = New-Object System.Collections.Generic.List[string]
+$reviewDifferences = New-Object System.Collections.Generic.List[string]
 $unknowns = New-Object System.Collections.Generic.List[string]
+
+function Add-C3ParityDifference {
+    param(
+        [Parameter(Mandatory = $true)]$Case,
+        [Parameter(Mandatory = $true)][string]$Message
+    )
+
+    if ([string]$Case.behaviorClass -in @('spec-valid', 'cross-platform-observe')) {
+        [void]$regressionDifferences.Add($Message)
+    }
+    else {
+        [void]$reviewDifferences.Add($Message)
+    }
+}
 
 if ([string]$original.dll.sha256 -cne [string]$modern.dll.sha256) {
     [void]$issues.Add('Original and Modern DLL hashes differ.')
@@ -58,7 +73,10 @@ foreach ($case in Get-Poc2C3FrozenCases) {
         $m = Get-C3Run -Capture $modern -Operation $op -CaseId $case.id
 
         if ([string]$o.observationKey -cne [string]$m.observationKey) {
-            [void]$modernOnlyDifferences.Add(('{0}/{1} observation differs: Original={2}, Modern={3}' -f $case.id, $op, $o.observationKey, $m.observationKey))
+            Add-C3ParityDifference -Case $case -Message ('{0}/{1} observation differs: Original={2}, Modern={3}' -f $case.id, $op, $o.observationKey, $m.observationKey)
+        }
+        if ([string]$o.process.exitCodeHex -cne [string]$m.process.exitCodeHex) {
+            Add-C3ParityDifference -Case $case -Message ('{0}/{1} process exit differs: Original={2}, Modern={3}' -f $case.id, $op, $o.process.exitCodeHex, $m.process.exitCodeHex)
         }
         if ([string]$o.observationKey -ceq 'other' -or [string]$m.observationKey -ceq 'other') {
             [void]$unknowns.Add(('{0}/{1} contains manual "other" observation.' -f $case.id, $op))
@@ -69,13 +87,16 @@ foreach ($case in Get-Poc2C3FrozenCases) {
     $me = Get-C3Run -Capture $modern -Operation 'extract' -CaseId $case.id
 
     if ([string]$oe.observationKey -cne [string]$me.observationKey) {
-        [void]$modernOnlyDifferences.Add(('{0}/extract UI observation differs: Original={1}, Modern={2}' -f $case.id, $oe.observationKey, $me.observationKey))
+        Add-C3ParityDifference -Case $case -Message ('{0}/extract UI observation differs: Original={1}, Modern={2}' -f $case.id, $oe.observationKey, $me.observationKey)
+    }
+    if ([string]$oe.process.exitCodeHex -cne [string]$me.process.exitCodeHex) {
+        Add-C3ParityDifference -Case $case -Message ('{0}/extract process exit differs: Original={1}, Modern={2}' -f $case.id, $oe.process.exitCodeHex, $me.process.exitCodeHex)
     }
 
     $of = [string]$oe.details.inventory.fingerprint
     $mf = [string]$me.details.inventory.fingerprint
     if ($of -cne $mf) {
-        [void]$modernOnlyDifferences.Add(('{0}/extract filesystem fingerprint differs.' -f $case.id))
+        Add-C3ParityDifference -Case $case -Message ('{0}/extract filesystem fingerprint differs.' -f $case.id)
     }
 
     if ($case.behaviorClass -in @('spec-valid', 'cross-platform-observe')) {
@@ -108,10 +129,10 @@ foreach ($capture in @($original, $modern)) {
 }
 
 $classification = 'MATCH'
-if ($modernOnlyDifferences.Count -ne 0) {
+if ($regressionDifferences.Count -ne 0) {
     $classification = 'REGRESSION'
 }
-elseif ($issues.Count -ne 0 -or $unknowns.Count -ne 0) {
+elseif ($issues.Count -ne 0 -or $reviewDifferences.Count -ne 0 -or $unknowns.Count -ne 0) {
     $classification = 'UNKNOWN'
 }
 
@@ -121,8 +142,10 @@ $report = [ordered]@{
     classification = $classification
     issueCount = $issues.Count
     issues = @($issues)
-    modernOnlyDifferenceCount = $modernOnlyDifferences.Count
-    modernOnlyDifferences = @($modernOnlyDifferences)
+    regressionDifferenceCount = $regressionDifferences.Count
+    regressionDifferences = @($regressionDifferences)
+    reviewDifferenceCount = $reviewDifferences.Count
+    reviewDifferences = @($reviewDifferences)
     unknownCount = $unknowns.Count
     unknowns = @($unknowns)
     observations = @($observations)
@@ -137,7 +160,8 @@ Write-JsonUtf8NoBom -Value $report -Path $reportPath -Depth 24
 
 Write-Host ''
 Write-Host ('[POC2-C3] Classification: {0}' -f $classification)
-foreach ($item in $modernOnlyDifferences) { Write-Host ('[POC2-C3] DIFFERENCE: {0}' -f $item) }
+foreach ($item in $regressionDifferences) { Write-Host ('[POC2-C3] REGRESSION: {0}' -f $item) }
+foreach ($item in $reviewDifferences) { Write-Host ('[POC2-C3] REVIEW: {0}' -f $item) }
 foreach ($item in $issues) { Write-Host ('[POC2-C3] ISSUE: {0}' -f $item) }
 foreach ($item in $unknowns) { Write-Host ('[POC2-C3] UNKNOWN: {0}' -f $item) }
 Write-Host ('[POC2-C3] Report: {0}' -f $reportPath)

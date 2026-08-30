@@ -92,7 +92,44 @@ $record = [ordered]@{
     capturedUtc = [DateTime]::UtcNow.ToString('o')
     process = $null
     observationKey = $null
+    observationNote = $null
     details = $null
+    externalAfter = $null
+}
+
+$stateBefore = Read-JsonUtf8 -Path $statePath
+
+function Set-C3OptionalObservationNote {
+    param(
+        [Parameter(Mandatory = $true)]$Record,
+        [Parameter(Mandatory = $true)][string]$Prompt
+    )
+
+    $note = Read-Host $Prompt
+    if (-not [string]::IsNullOrWhiteSpace($note)) {
+        $Record.observationNote = $note
+    }
+}
+
+function Complete-C3RunRecord {
+    param(
+        [Parameter(Mandatory = $true)]$Record,
+        [Parameter(Mandatory = $true)]$Process
+    )
+
+    $externalAfter = Get-ExternalState
+    $Record.externalAfter = $externalAfter
+
+    $path = Save-C3RunRecord -Target $Target -Operation $Operation -CaseId $CaseId -Record $Record
+    Write-Host ('[POC2-C3] Evidence: {0}' -f $path)
+
+    if ($Process.looksLikeCrash) {
+        throw ('LhaForge appears to have crashed: {0}' -f $Process.exitCodeHex)
+    }
+
+    if (-not (Test-ExternalInventoryEqual -Left $stateBefore.external -Right $externalAfter)) {
+        throw ('External AppData/ProgramData state changed after {0}/{1}/{2}. Stop and preserve evidence.' -f $Target, $Operation, $CaseId)
+    }
 }
 
 switch ($Operation) {
@@ -132,10 +169,12 @@ switch ($Operation) {
             elseif ($choice -ceq 'e') {
                 $record.observationKey = 'error'
                 $record.details = [ordered]@{ candidates = @($candidates) }
+                Set-C3OptionalObservationNote -Record $record -Prompt 'Optional error/warning text or observation note (Enter to skip)'
             }
             else {
                 $record.observationKey = 'other'
                 $record.details = [ordered]@{ candidates = @($candidates) }
+                Set-C3OptionalObservationNote -Record $record -Prompt 'Describe the unexpected List result (Enter to skip)'
             }
         }
         else {
@@ -153,14 +192,16 @@ switch ($Operation) {
                 default { 'other' }
             }
             $record.details = [ordered]@{ entryCount = $entries.Count }
+
+            if ($choice -ceq 'e') {
+                Set-C3OptionalObservationNote -Record $record -Prompt 'Optional error/warning text or observation note (Enter to skip)'
+            }
+            elseif ($choice -ceq 'o') {
+                Set-C3OptionalObservationNote -Record $record -Prompt 'Describe the unexpected List result (Enter to skip)'
+            }
         }
 
-        $path = Save-C3RunRecord -Target $Target -Operation $Operation -CaseId $CaseId -Record $record
-        Write-Host ('[POC2-C3] Evidence: {0}' -f $path)
-
-        if ($process.looksLikeCrash) {
-            throw ('LhaForge appears to have crashed: {0}' -f $process.exitCodeHex)
-        }
+        Complete-C3RunRecord -Record $record -Process $process
     }
 
     'test' {
@@ -176,12 +217,14 @@ switch ($Operation) {
         }
         $record.details = [ordered]@{}
 
-        $path = Save-C3RunRecord -Target $Target -Operation $Operation -CaseId $CaseId -Record $record
-        Write-Host ('[POC2-C3] Evidence: {0}' -f $path)
-
-        if ($process.looksLikeCrash) {
-            throw ('LhaForge appears to have crashed: {0}' -f $process.exitCodeHex)
+        if ($choice -ceq 'e') {
+            Set-C3OptionalObservationNote -Record $record -Prompt 'Optional test error/warning text (Enter to skip)'
         }
+        elseif ($choice -ceq 'o') {
+            Set-C3OptionalObservationNote -Record $record -Prompt 'Describe the unexpected Test result (Enter to skip)'
+        }
+
+        Complete-C3RunRecord -Record $record -Process $process
     }
 
     'extract' {
@@ -215,15 +258,17 @@ switch ($Operation) {
             semanticMatch = $semanticMatch
         }
 
-        $path = Save-C3RunRecord -Target $Target -Operation $Operation -CaseId $CaseId -Record $record
-        Write-Host ('[POC2-C3] Evidence: {0}' -f $path)
+        if ($choice -ceq 'e') {
+            Set-C3OptionalObservationNote -Record $record -Prompt 'Optional extraction error/warning text (Enter to skip)'
+        }
+        elseif ($choice -ceq 'o') {
+            Set-C3OptionalObservationNote -Record $record -Prompt 'Describe the unexpected Extract result (Enter to skip)'
+        }
+
+        Complete-C3RunRecord -Record $record -Process $process
         Write-Host ('[POC2-C3] Extract fingerprint: {0}' -f $inventory.fingerprint)
         if ($null -ne $semanticMatch) {
             Write-Host ('[POC2-C3] Matches declared semantic inventory: {0}' -f $semanticMatch)
-        }
-
-        if ($process.looksLikeCrash) {
-            throw ('LhaForge appears to have crashed: {0}' -f $process.exitCodeHex)
         }
     }
 }
