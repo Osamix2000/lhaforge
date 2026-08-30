@@ -168,14 +168,33 @@ function Get-C3StrictCp932 {
     }
 }
 
+function Get-C3UInt16Le {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][byte[]]$Bytes,
+        [Parameter(Mandatory = $true)][int]$Offset
+    )
+
+    if ($Offset -lt 0 -or ($Offset + 2) -gt $Bytes.Length) {
+        throw ('UInt16LE read is out of range. Offset={0}, Length={1}' -f $Offset, $Bytes.Length)
+    }
+
+    # Windows PowerShell 5.1 can preserve the Byte operand width for bitwise shifts.
+    # Promote both operands to Int32 before shifting so 0x70 << 8 becomes 0x7000,
+    # rather than being truncated at the Byte width.
+    return [uint16](
+        ([int]$Bytes[$Offset]) -bor
+        (([int]$Bytes[$Offset + 1]) -shl 8)
+    )
+}
+
 function Get-C3UnicodePathCandidate {
     param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$ExtraHex)
 
     [byte[]]$bytes = Convert-C3HexToBytes -Hex $ExtraHex
     $offset = 0
     while (($offset + 4) -le $bytes.Length) {
-        $id = [uint16]($bytes[$offset] -bor ($bytes[$offset + 1] -shl 8))
-        $size = [uint16]($bytes[$offset + 2] -bor ($bytes[$offset + 3] -shl 8))
+        $id = Get-C3UInt16Le -Bytes $bytes -Offset $offset
+        $size = Get-C3UInt16Le -Bytes $bytes -Offset ($offset + 2)
         $offset += 4
         if (($offset + $size) -gt $bytes.Length) {
             return $null

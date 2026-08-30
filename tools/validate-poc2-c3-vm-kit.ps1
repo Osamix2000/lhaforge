@@ -167,9 +167,27 @@ if ($asciiCandidates.Count -ne 1 -or [string]$asciiCandidates[0].text -cne 'asci
 }
 
 $conflictCase = @($fixtureManifest.cases | Where-Object { [string]$_.id -ceq 'cp932-upath-conflict' })[0]
+$conflictEntry = @($conflictCase.entries)[0]
+
+$conflictExtraBytes = Convert-C3HexToBytes -Hex ([string]$conflictEntry.extraHex)
+if ((Get-C3UInt16Le -Bytes $conflictExtraBytes -Offset 0) -ne 0x7075) {
+    throw 'C3 helper UInt16LE extra-field ID smoke test failed.'
+}
+if ((Get-C3UInt16Le -Bytes $conflictExtraBytes -Offset 2) -ne 15) {
+    throw 'C3 helper UInt16LE extra-field size smoke test failed.'
+}
+
+$conflictUnicodePath = Get-C3UnicodePathCandidate -ExtraHex ([string]$conflictEntry.extraHex)
+if ($null -eq $conflictUnicodePath) {
+    throw 'C3 helper Unicode Path extra-field parser smoke test failed.'
+}
+if ([int]$conflictUnicodePath.version -ne 1 -or -not [bool]$conflictUnicodePath.validUtf8) {
+    throw 'C3 helper Unicode Path decoded metadata smoke test failed.'
+}
+
 $conflictCandidates = @(Get-C3NameCandidates -FixtureCase $conflictCase)
 if ($conflictCandidates.Count -lt 2) {
-    throw 'C3 helper conflict candidate smoke test failed.'
+    throw ('C3 helper conflict candidate smoke test failed. CandidateCount={0}' -f $conflictCandidates.Count)
 }
 
 $macCase = @($fixtureManifest.cases | Where-Object { [string]$_.id -ceq 'macos-metadata' })[0]
